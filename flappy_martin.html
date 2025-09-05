@@ -615,7 +615,7 @@
             <img src="gameover.png" alt="게임 오버" style="max-width: 250px; margin: 20px;">
             <p id="finalScore">최종 점수: 0</p>
             <div id="nameInputSection" class="hidden">
-                <p>축하합니다! 상위 20위 진입!</p>
+               
                 <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="20" autocomplete="off">
                 <input type="password" id="playerPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
                 <p style="font-size: 12px; color: #ccc;">* 개인확인번호는 6자리 숫자로 입력하세요</p>
@@ -1205,17 +1205,19 @@
                 const resetNumber = Date.now();
                 
                 const backupRankings = [];
-                snapshot.forEach((docSnapshot, index) => {
-                    const data = docSnapshot.data();
-                    backupRankings.push({
-                        rank: index + 1,
-                        nickname: data.nickname,
-                        score: data.score,
-                        date: data.date,
-                        device: data.device,
-                        timestamp: data.timestamp
-                    });
-                });
+                let rankIndex = 1;
+snapshot.forEach((docSnapshot) => {
+    const data = docSnapshot.data();
+    backupRankings.push({
+        rank: rankIndex,
+        nickname: data.nickname,
+        score: data.score,
+        date: data.date,
+        device: data.device,
+        timestamp: data.timestamp
+    });
+    rankIndex++;
+});
                 
                 const backupDoc = {
                     resetDate: resetDate,
@@ -1251,7 +1253,7 @@
             
             try {
                 const { collection, query, orderBy, getDocs } = window.firestoreModules;
-                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('resetNumber', 'desc'));
+                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('resetNumber', 'asc'));
                 const snapshot = await getDocs(backupQuery);
                 
                 let html = '<h3>백업된 랭킹 기록</h3>';
@@ -1259,23 +1261,30 @@
                 if (snapshot.empty) {
                     html += '<p>백업된 기록이 없습니다.</p>';
                 } else {
-                    snapshot.forEach((doc, index) => {
-                        const data = doc.data();
-                        const resetDate = data.resetDate || '날짜 정보 없음';
-                        
-                        html += `<h4 style="margin-top: 20px; color: #2196F3;">${index + 1}번째 초기화 (${resetDate})</h4>`;
-                        html += `<p style="font-size: 12px; color: #666;">총 ${data.totalBackedUp || 0}명 백업</p>`;
-                        
-                        if (data.rankings && data.rankings.length > 0) {
-                            data.rankings.forEach((ranking) => {
-                                const deviceIcon = ranking.device === 'mobile' ? '📱' : '💻';
-                                html += `<div class="backup-item">
-                                    ${ranking.rank}위. ${ranking.nickname} ${deviceIcon} - ${ranking.score}점
-                                    <br><small>기록일: ${ranking.date || '정보 없음'}</small>
-                                </div>`;
-                            });
-                        }
-                    });
+
+const docs = [];
+snapshot.forEach((doc) => {
+    docs.push(doc.data());
+});
+
+for (let i = docs.length - 1; i >= 0; i--) {
+    const data = docs[i];
+    const resetDate = data.resetDate || '날짜 정보 없음';
+    const displayNumber = i + 1;
+    
+    html += `<h4 style="margin-top: 20px; color: #2196F3;">${displayNumber}번째 초기화 (${resetDate})</h4>`;
+    html += `<p style="font-size: 12px; color: #666;">총 ${data.totalBackedUp || 0}명 백업</p>`;
+    
+    if (data.rankings && data.rankings.length > 0) {
+        data.rankings.forEach((ranking) => {
+            const deviceIcon = ranking.device === 'mobile' ? '📱' : '💻';
+            html += `<div class="backup-item">
+                ${ranking.rank}위. ${ranking.nickname} ${deviceIcon} - ${ranking.score}점
+                <br><small>기록일: ${ranking.date || '정보 없음'}</small>
+            </div>`;
+        });
+    }
+}
                 }
                 
                 document.getElementById('backupDisplay').innerHTML = html;
