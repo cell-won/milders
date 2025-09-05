@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Milders Flappy Martin</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         * {
             margin: 0;
@@ -453,13 +456,13 @@
             
             <div id="rankingSection">
                 <div id="rankingList">
-                    <h3>🏆 TOP 3 랭킹</h3>
+                    <h3>TOP 3 랭킹</h3>
                     <div id="top3Rankings">로딩 중...</div>
                 </div>
                 
                 <div id="rankingControls">
-                    <h3>🔍 내 순위 확인</h3>
-                    <input type="text" id="checkNickname" placeholder="닉네임" maxlength="10" autocomplete="off">
+                    <h3>내 순위 확인</h3>
+                    <input type="text" id="checkNickname" placeholder="닉네임" maxlength="20" autocomplete="off">
                     <input type="number" id="checkPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
                     <br>
                     <button class="secondary" onclick="checkMyRanking()">내 순위 보기</button>
@@ -473,8 +476,8 @@
             <img src="gameover.png" alt="게임 오버" style="max-width: 250px; margin: 20px;">
             <p id="finalScore">최종 점수: 0</p>
             <div id="nameInputSection" class="hidden">
-                <p>🎉 축하합니다! 상위 20위 진입!</p>
-                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="10" autocomplete="off">
+                <p>축하합니다! 상위 20위 진입!</p>
+                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="20" autocomplete="off">
                 <input type="number" id="playerPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
                 <p style="font-size: 12px; color: #ccc;">* 개인확인번호는 6자리 숫자로 입력하세요</p>
                 <br>
@@ -488,11 +491,11 @@
         <!-- 관리자 모달 -->
         <div id="adminModal" class="admin-modal hidden">
             <div class="admin-content">
-                <h2>🔧 관리자 모드</h2>
+                <h2>관리자 모드</h2>
                 <p>관리자 권한으로 로그인되었습니다.</p>
                 <br>
-                <button class="danger" onclick="resetRankings()">📊 랭킹 초기화</button>
-                <button class="warning" onclick="viewBackupData()">📋 백업 기록 보기</button>
+                <button class="danger" onclick="resetRankings()">랭킹 초기화</button>
+                <button class="warning" onclick="viewBackupData()">백업 기록 보기</button>
                 <button class="secondary" onclick="closeAdminModal()">닫기</button>
                 <div id="adminMessage"></div>
                 <div id="backupDisplay"></div>
@@ -520,9 +523,9 @@
             db = getFirestore(app);
             window.firebaseDB = db;
             window.firestoreModules = { collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc };
-            console.log("🔥 Firebase 연결 성공!");
+            console.log("Firebase 연결 성공!");
         } catch (error) {
-            console.error("❌ Firebase 연결 실패:", error);
+            console.error("Firebase 연결 실패:", error);
             window.firebaseDB = null;
         }
     </script>
@@ -535,18 +538,20 @@
                 gravity: 0.22,
                 jumpPower: -4.5,
                 obstacleInterval: 180,
-                birdSize: 70,
+                birdSize: 55,
                 maxVelocity: 7,
-                minVelocity: -7
+                minVelocity: -7,
+                speedIncrease: 0.15
             },
             desktop: {
                 gameSpeed: 2.9,
                 gravity: 0.45,
                 jumpPower: -7.5,
                 obstacleInterval: 120,
-                birdSize: 40,
+                birdSize: 50,
                 maxVelocity: 11,
-                minVelocity: -11
+                minVelocity: -11,
+                speedIncrease: 0.19
             }
         };
 
@@ -619,10 +624,10 @@
             img.onload = function() {
                 gameImages[key] = img;
                 gameImages.loaded[key] = true;
-                console.log(`✅ ${filename} 로딩 성공`);
+                console.log(`${filename} 로딩 성공`);
             };
             img.onerror = function() {
-                console.log(`⚠️ ${filename} 로딩 실패 - 기본 그래픽 사용`);
+                console.log(`${filename} 로딩 실패 - 기본 그래픽 사용`);
                 gameImages.loaded[key] = false;
             };
             img.src = filename;
@@ -687,26 +692,19 @@
                 
                 const backupData = [];
                 const deletePromises = [];
+                const resetDate = new Date().toLocaleString('ko-KR');
                 
                 snapshot.forEach((docSnapshot) => {
                     const data = docSnapshot.data();
                     backupData.push({
                         ...data,
-                        backupDate: new Date().toLocaleString('ko-KR')
+                        backupDate: resetDate,
+                        resetNumber: Date.now()
                     });
                     deletePromises.push(deleteDoc(doc(window.firebaseDB, 'rankings', docSnapshot.id)));
                 });
                 
-                // 기존 백업 삭제
-                const oldBackup = query(collection(window.firebaseDB, 'backup_rankings'));
-                const oldBackupSnapshot = await getDocs(oldBackup);
-                const deleteOldBackup = [];
-                oldBackupSnapshot.forEach((docSnapshot) => {
-                    deleteOldBackup.push(deleteDoc(doc(window.firebaseDB, 'backup_rankings', docSnapshot.id)));
-                });
-                await Promise.all(deleteOldBackup);
-                
-                // 새 백업 저장
+                // 새 백업 저장 (기존 백업은 삭제하지 않고 누적)
                 const backupPromises = backupData.map(data => 
                     addDoc(collection(window.firebaseDB, 'backup_rankings'), data)
                 );
@@ -715,7 +713,7 @@
                 // 현재 랭킹 삭제
                 await Promise.all(deletePromises);
                 
-                document.getElementById('adminMessage').innerHTML = '<div class="success-message">✅ 랭킹이 초기화되었습니다!</div>';
+                document.getElementById('adminMessage').innerHTML = `<div class="success-message">랭킹이 초기화되었습니다!<br>초기화 날짜: ${resetDate}</div>`;
                 loadTop3Rankings();
                 
             } catch (error) {
@@ -732,20 +730,32 @@
             
             try {
                 const { collection, query, orderBy, getDocs } = window.firestoreModules;
-                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('score', 'desc'));
+                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('resetNumber', 'desc'), orderBy('score', 'desc'));
                 const snapshot = await getDocs(backupQuery);
                 
-                let html = '<h3>📋 백업된 랭킹 기록</h3>';
+                let html = '<h3>백업된 랭킹 기록</h3>';
                 
                 if (snapshot.empty) {
                     html += '<p>백업된 기록이 없습니다.</p>';
                 } else {
+                    let currentResetNumber = null;
+                    let resetCount = 0;
+                    
                     snapshot.forEach((doc, index) => {
                         const data = doc.data();
-                        const deviceIcon = data.device === 'mobile' ? '📱' : '💻';
+                        
+                        if (data.resetNumber !== currentResetNumber) {
+                            currentResetNumber = data.resetNumber;
+                            resetCount++;
+                            html += `<h4 style="margin-top: 20px; color: #2196F3;">${resetCount}번째 초기화 (${data.backupDate})</h4>`;
+                        }
+                        
+                        const deviceIcon = data.device === 'mobile' ? 'M' : 'D';
+                        const rank = snapshot.docs.filter(d => d.data().resetNumber === currentResetNumber).findIndex(d => d.id === doc.id) + 1;
+                        
                         html += `<div class="backup-item">
-                            ${index + 1}위. ${data.nickname} ${deviceIcon} - ${data.score}점
-                            <br><small>백업일: ${data.backupDate}</small>
+                            ${rank}위. ${data.nickname} [${deviceIcon}] - ${data.score}점
+                            <br><small>기록일: ${data.date}</small>
                         </div>`;
                     });
                 }
@@ -801,7 +811,7 @@
                 
                 await addDoc(collection(window.firebaseDB, 'rankings'), rankingData);
                 
-                messageEl.innerHTML = '<div class="success-message">🎉 랭킹 등록 완료!</div>';
+                messageEl.innerHTML = '<div class="success-message">랭킹 등록 완료!</div>';
                 document.getElementById('nameInputSection').classList.add('hidden');
                 loadTop3Rankings();
                 
@@ -813,7 +823,7 @@
         
         async function loadTop3Rankings() {
             if (!window.firebaseDB) {
-                document.getElementById('top3Rankings').innerHTML = '❌ Firebase 연결 필요';
+                document.getElementById('top3Rankings').innerHTML = 'Firebase 연결 필요';
                 return;
             }
             
@@ -835,7 +845,7 @@
                 
             } catch (error) {
                 console.error('랭킹 로드 오류:', error);
-                document.getElementById('top3Rankings').innerHTML = '❌ 로딩 실패';
+                document.getElementById('top3Rankings').innerHTML = '로딩 실패';
             }
         }
         
@@ -850,7 +860,7 @@
             let html = '';
             rankings.forEach((player, index) => {
                 const medal = ['🥇', '🥈', '🥉'][index];
-                const deviceIcon = player.device === 'mobile' ? '📱' : '💻';
+                const deviceIcon = player.device === 'mobile' ? '[M]' : '[D]';
                 html += `<div class="rank-item top3">
                     <span>${medal} ${index + 1}위. ${player.nickname} ${deviceIcon}</span>
                     <span>${player.score}점</span>
@@ -866,7 +876,7 @@
             const displayEl = document.getElementById('myRankDisplay');
             
             // 관리자 로그인 확인
-            if (nickname === 'milders_boss' && pin === '02150215') {
+            if (nickname === 'mildersboss' && pin === '021502') {
                 document.getElementById('adminModal').classList.remove('hidden');
                 document.getElementById('checkNickname').value = '';
                 document.getElementById('checkPin').value = '';
@@ -921,13 +931,13 @@
                 
                 myRecords.sort((a, b) => a.rank - b.rank);
                 const bestRecord = myRecords[0];
-                const deviceIcon = bestRecord.device === 'mobile' ? '📱' : '💻';
+                const deviceIcon = bestRecord.device === 'mobile' ? '[M]' : '[D]';
                 
                 displayEl.innerHTML = `
                     <div class="success-message">
-                        🏆 최고 순위: ${bestRecord.rank}위 ${deviceIcon}<br>
-                        📊 점수: ${bestRecord.score}점<br>
-                        📅 날짜: ${bestRecord.date}
+                        최고 순위: ${bestRecord.rank}위 ${deviceIcon}<br>
+                        점수: ${bestRecord.score}점<br>
+                        날짜: ${bestRecord.date}
                     </div>
                 `;
                 
@@ -1127,7 +1137,7 @@
                     
                     if (score % 5 === 0) {
                         difficultyLevel++;
-                        gameSpeed += 0.1;
+                        gameSpeed += currentConfig.speedIncrease;
                         obstacleInterval = Math.max(isMobile ? 100 : 60, obstacleInterval - 4);
                     }
                 }
@@ -1255,43 +1265,32 @@
                     e.target.value = e.target.value.slice(0, 6);
                 }
             });
-            
-            pinInput.addEventListener('keydown', (e) => {
-                if (!/[0-9]/.test(e.key) && 
-                    !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                    e.preventDefault();
-                }
-            });
         }
         
         function setupNicknameValidation(elementId) {
             const nicknameInput = document.getElementById(elementId);
             
             nicknameInput.addEventListener('input', (e) => {
-                // 한글, 영어, 숫자만 허용 (관리자 계정용 영어만 허용)
                 let value = e.target.value;
                 
-                // 한글 입력 중인지 확인 (조합 중인 문자)
                 if (e.inputType === 'insertCompositionText' || e.isComposing) {
-                    return; // 한글 조합 중일 때는 제한하지 않음
+                    return;
                 }
                 
-                // 완성된 입력에 대해서만 필터링 (영어는 특수문자 제한 없이 허용)
                 value = value.replace(/[^가-힣a-zA-Z0-9]/g, '');
                 
-                if (value.length > 15) { // 관리자 계정명 길이 고려
-                    value = value.slice(0, 15);
+                if (value.length > 20) {
+                    value = value.slice(0, 20);
                 }
                 
                 e.target.value = value;
             });
             
-            // 조합 종료 후 최종 검증
             nicknameInput.addEventListener('compositionend', (e) => {
                 let value = e.target.value;
                 value = value.replace(/[^가-힣a-zA-Z0-9]/g, '');
-                if (value.length > 15) {
-                    value = value.slice(0, 15);
+                if (value.length > 20) {
+                    value = value.slice(0, 20);
                 }
                 e.target.value = value;
             });
@@ -1319,12 +1318,6 @@
         }, { passive: false });
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-        }, { passive: false });
-        
-        canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 1) {
-                e.preventDefault();
-            }
         }, { passive: false });
         
         // Enter 키 이벤트들
@@ -1395,4 +1388,3 @@
     </script>
 </body>
 </html>
-                
