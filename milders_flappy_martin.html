@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Milders Flappy Martin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 3px solid #333;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        /* 데스크탑 최적화 */
+        @media (min-width: 769px) {
+            #gameContainer {
+                width: 900px;
+                height: 700px;
+            }
+            
+            #gameCanvas {
+                width: 900px;
+                height: 700px;
+            }
+            
+            .ui-overlay {
+                font-size: 24px;
+            }
+            
+            .game-title {
+                font-size: 42px;
+                margin-bottom: 30px;
+            }
+            
+            button {
+                padding: 15px 30px;
+                font-size: 18px;
+                margin: 10px;
+            }
+            
+            input {
+                padding: 12px;
+                font-size: 16px;
+                width: 200px;
+                margin: 8px;
+            }
+            
+            #rankingSection {
+                flex-direction: row;
+                gap: 30px;
+            }
+            
+            #score {
+                font-size: 32px;
+                top: 20px;
+                left: 20px;
+            }
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+                align-items: flex-start;
+                padding-top: env(safe-area-inset-top);
+            }
+            
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                border: none;
+                max-width: 100vw;
+                max-height: 100vh;
+            }
+            
+            #gameCanvas {
+                width: 100vw;
+                height: 100vh;
+                max-width: 100vw;
+                max-height: 100vh;
+                display: block;
+            }
+            
+            .ui-overlay {
+                font-size: 18px;
+                padding: 20px 15px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .game-title {
+                font-size: 28px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            
+            button {
+                padding: 14px 24px;
+                font-size: 16px;
+                margin: 8px 5px;
+                min-height: 48px;
+                border-radius: 8px;
+                min-width: 120px;
+            }
+            
+            input {
+                padding: 14px;
+                font-size: 16px;
+                width: 90%;
+                max-width: 280px;
+                margin: 10px 0;
+                border-radius: 8px;
+                border: 2px solid #ccc;
+            }
+            
+            #rankingSection {
+                flex-direction: column;
+                gap: 20px;
+                width: 100%;
+                align-items: center;
+            }
+            
+            #rankingList, #rankingControls {
+                width: 95%;
+                max-width: 350px;
+                margin: 0;
+            }
+            
+            #score {
+                font-size: 24px;
+                top: env(safe-area-inset-top, 15px);
+                left: 15px;
+                z-index: 1000;
+            }
+            
+            #connectionStatus {
+                top: env(safe-area-inset-top, 15px);
+                right: 15px;
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+            
+            #startButtonImage {
+                max-width: 160px;
+                margin: 15px;
+            }
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+
+        #rankingSection {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        #rankingList, #rankingControls {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 8px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .rank-item:hover {
+            background: rgba(255,215,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .rank-item.top3 {
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+            padding: 15px 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            color: #333;
+            border: none;
+            box-shadow: 0 4px 8px rgba(255,215,0,0.3);
+        }
+
+        #score {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px);
+        }
+
+        input[type="text"], input[type="password"] {
+            border: 2px solid #ddd;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76,175,80,0.3);
+        }
+
+        #startButtonImage {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        #startButtonImage:hover {
+            transform: scale(1.1);
+        }
+
+        .game-title {
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.8);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #connectionStatus {
+            position: absolute;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+
+        .online {
+            background: rgba(76,175,80,0.9);
+            color: white;
+        }
+
+        .offline {
+            background: rgba(244,67,54,0.9);
+            color: white;
+        }
+
+        .loading {
+            background: rgba(255,152,0,0.9);
+            color: white;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 14px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(244,67,54,0.1);
+            border-radius: 5px;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            font-size: 14px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(76,175,80,0.1);
+            border-radius: 5px;
+        }
+
+        #myRankResult {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            max-width: 320px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 스크롤바 숨기기 */
+        .ui-overlay::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* iOS 스타일 적용 */
+        @supports (-webkit-touch-callout: none) {
+            input {
+                -webkit-appearance: none;
+                border-radius: 10px;
+            }
+            
+            button {
+                -webkit-appearance: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="900" height="700"></canvas>
+        
+        <div id="connectionStatus" class="loading">연결 중...</div>
+        <div id="score">점수: 0</div>
+        
+        <!-- 시작 화면 -->
+        <div id="startScreen" class="ui-overlay">
+            <h1 class="game-title">Milders Flappy Martin</h1>
+            <p>탭하거나 스페이스바로 점프하세요!</p>
+            <img id="startButtonImage" src="startbutton.png" alt="게임 시작" onclick="startGame()">
+            
+            <div id="rankingSection">
+                <div id="rankingList">
+                    <h3>🏆 TOP 3 랭킹</h3>
+                    <div id="top3Rankings">로딩 중...</div>
+                </div>
+                
+                <div id="rankingControls">
+                    <h3>🔍 내 순위 확인</h3>
+                    <input type="text" id="checkNickname" placeholder="닉네임" maxlength="10">
+                    <input type="password" id="checkPin" placeholder="개인확인번호" maxlength="6">
+                    <br>
+                    <button class="secondary" onclick="checkMyRanking()">내 순위 보기</button>
+                    <div id="myRankDisplay"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 게임오버 화면 -->
+        <div id="gameOverScreen" class="ui-overlay hidden">
+            <img src="gameover.png" alt="게임 오버" style="max-width: 250px; margin: 20px;">
+            <p id="finalScore">최종 점수: 0</p>
+            <div id="nameInputSection" class="hidden">
+                <p>🎉 축하합니다! 상위 20위 진입!</p>
+                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="10">
+                <input type="password" id="playerPin" placeholder="개인확인번호 (비공개)" maxlength="6">
+                <p style="font-size: 12px; color: #ccc;">* 개인확인번호는 6자리 숫자로 입력하세요</p>
+                <br>
+                <button onclick="submitScore()">랭킹 등록</button>
+                <div id="submitMessage"></div>
+            </div>
+            <button onclick="restartGame()">다시 시작</button>
+            <button onclick="showStartScreen()">메인 메뉴</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHUAQuZ-JeNmpeDfdbo5kPwW7v2emH8bg",
+            authDomain: "milders-flappy-martin.firebaseapp.com",
+            projectId: "milders-flappy-martin",
+            storageBucket: "milders-flappy-martin.firebasestorage.app",
+            messagingSenderId: "505347834080",
+            appId: "1:505347834080:web:c10bcf079e1681ffd19085"
+        };
+
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            window.firebaseDB = db;
+            window.firestoreModules = { collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs };
+            console.log("🔥 Firebase 연결 성공!");
+        } catch (error) {
+            console.error("❌ Firebase 연결 실패:", error);
+            window.firebaseDB = null;
+        }
+    </script>
+
+    <script>
+        // 게임 기본 설정
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = 'start';
+        let score = 0;
+        let gameSpeed = 2.2;
+        let difficultyLevel = 1;
+        
+        // 디바이스 감지 및 게임 설정
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        
+        // 캔버스 크기 동적 설정
+        function setupCanvas() {
+            if (isMobile) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gameSpeed = 1.8;
+                console.log("📱 모바일 모드 활성화");
+            } else {
+                canvas.width = 900;
+                canvas.height = 700;
+                gameSpeed = 2.2;
+                console.log("💻 데스크탑 모드 활성화");
+            }
+        }
+        
+        setupCanvas();
+        
+        // 게임 물리 설정 (디바이스별)
+        let GRAVITY = isMobile ? 0.25 : 0.4;
+        let JUMP_POWER = isMobile ? -4.5 : -7.0;
+        let MAX_VELOCITY = isMobile ? 8 : 10;
+        let MIN_VELOCITY = isMobile ? -8 : -10;
+        
+        // 연결 상태 업데이트
+        function updateConnectionStatus(status, text) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = status;
+            statusEl.textContent = text;
+        }
+        
+        // 이미지 관리
+        const gameImages = {
+            background: null,
+            character: null,
+            blockTop: null,
+            blockBottom: null,
+            ground: null,
+            loaded: {
+                background: false,
+                character: false,
+                blockTop: false,
+                blockBottom: false,
+                ground: false
+            }
+        };
+        
+        const GROUND_HEIGHT = isMobile ? 60 : 80;
+        
+        function loadGameImage(key, filename) {
+            const img = new Image();
+            img.onload = function() {
+                gameImages[key] = img;
+                gameImages.loaded[key] = true;
+                console.log(`✅ ${filename} 로딩 성공`);
+            };
+            img.onerror = function() {
+                console.log(`⚠️ ${filename} 로딩 실패 - 기본 그래픽 사용`);
+                gameImages.loaded[key] = false;
+            };
+            img.src = filename;
+        }
+        
+        loadGameImage('background', 'background.png');
+        loadGameImage('character', 'martin.png');
+        loadGameImage('blockTop', 'blocktop.png');
+        loadGameImage('blockBottom', 'blockbottom.png');
+        loadGameImage('ground', 'ground.png');
+        
+        // 캐릭터 설정
+        const bird = {
+            x: isMobile ? canvas.width * 0.15 : 120,
+            y: canvas.height / 2,
+            width: isMobile ? 35 : 40,
+            height: isMobile ? 35 : 40,
+            velocity: 0,
+            rotation: 0
+        };
+        
+        let obstacles = [];
+        let obstacleTimer = 0;
+        let obstacleInterval = isMobile ? 160 : 140;
+        let backgroundScroll = 0;
+        
+        // 암호화 함수
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString().slice(0, 6);
+        }
+        
+        // Firebase 랭킹 함수들
+        async function submitScore() {
+            const nickname = document.getElementById('playerName').value.trim();
+            const pin = document.getElementById('playerPin').value.trim();
+            const messageEl = document.getElementById('submitMessage');
+            
+            if (!nickname) {
+                messageEl.innerHTML = '<div class="error-message">닉네임을 입력해주세요!</div>';
+                return;
+            }
+            
+            if (!pin || pin.length !== 6) {
+                messageEl.innerHTML = '<div class="error-message">개인확인번호는 6자리 숫자여야 합니다!</div>';
+                return;
+            }
+            
+            if (!window.firebaseDB) {
+                messageEl.innerHTML = '<div class="error-message">Firebase 연결이 필요합니다!</div>';
+                return;
+            }
+            
+            try {
+                messageEl.innerHTML = '<div class="loading">랭킹 등록 중...</div>';
+                
+                const { collection, addDoc } = window.firestoreModules;
+                const rankingData = {
+                    nickname: nickname,
+                    pin: simpleHash(pin),
+                    rawPin: pin,
+                    score: score,
+                    timestamp: Date.now(),
+                    date: new Date().toLocaleDateString('ko-KR'),
+                    device: isMobile ? 'mobile' : 'desktop'
+                };
+                
+                await addDoc(collection(window.firebaseDB, 'rankings'), rankingData);
+                
+                messageEl.innerHTML = '<div class="success-message">🎉 랭킹 등록 완료!</div>';
+                document.getElementById('nameInputSection').classList.add('hidden');
+                loadTop3Rankings();
+                
+            } catch (error) {
+                console.error('랭킹 등록 오류:', error);
+                messageEl.innerHTML = '<div class="error-message">등록 중 오류가 발생했습니다.</div>';
+            }
+        }
+        
+        async function loadTop3Rankings() {
+            if (!window.firebaseDB) {
+                document.getElementById('top3Rankings').innerHTML = '❌ Firebase 연결 필요';
+                return;
+            }
+            
+            try {
+                const { collection, query, orderBy, limit, onSnapshot } = window.firestoreModules;
+                const q = query(
+                    collection(window.firebaseDB, 'rankings'),
+                    orderBy('score', 'desc'),
+                    limit(3)
+                );
+                
+                onSnapshot(q, (snapshot) => {
+                    const rankings = [];
+                    snapshot.forEach((doc) => {
+                        rankings.push(doc.data());
+                    });
+                    displayTop3Rankings(rankings);
+                });
+                
+            } catch (error) {
+                console.error('랭킹 로드 오류:', error);
+                document.getElementById('top3Rankings').innerHTML = '❌ 로딩 실패';
+            }
+        }
+        
+        function displayTop3Rankings(rankings) {
+            const container = document.getElementById('top3Rankings');
+            
+            if (rankings.length === 0) {
+                container.innerHTML = '<p>아직 기록이 없습니다</p>';
+                return;
+            }
+            
+            let html = '';
+            rankings.forEach((player, index) => {
+                const medal = ['🥇', '🥈', '🥉'][index];
+                const deviceIcon = player.device === 'mobile' ? '📱' : '💻';
+                html += `<div class="rank-item top3">
+                    <span>${medal} ${index + 1}위. ${player.nickname} ${deviceIcon}</span>
+                    <span>${player.score}점</span>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        async function checkMyRanking() {
+            const nickname = document.getElementById('checkNickname').value.trim();
+            const pin = document.getElementById('checkPin').value.trim();
+            const displayEl = document.getElementById('myRankDisplay');
+            
+            if (!nickname || !pin) {
+                displayEl.innerHTML = '<div class="error-message">닉네임과 개인확인번호를 입력하세요</div>';
+                return;
+            }
+            
+            if (!window.firebaseDB) {
+                displayEl.innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            try {
+                displayEl.innerHTML = '<div class="loading">검색 중...</div>';
+                
+                const { collection, query, where, getDocs, orderBy } = window.firestoreModules;
+                
+                const q = query(
+                    collection(window.firebaseDB, 'rankings'),
+                    where('nickname', '==', nickname),
+                    where('rawPin', '==', pin)
+                );
+                
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    displayEl.innerHTML = '<div class="error-message">일치하는 기록이 없습니다</div>';
+                    return;
+                }
+                
+                const allRankingsQuery = query(
+                    collection(window.firebaseDB, 'rankings'),
+                    orderBy('score', 'desc')
+                );
+                
+                const allSnapshot = await getDocs(allRankingsQuery);
+                const allRankings = [];
+                allSnapshot.forEach((doc) => {
+                    allRankings.push(doc.data());
+                });
+                
+                const myRecords = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const rank = allRankings.findIndex(r => r.timestamp === data.timestamp) + 1;
+                    myRecords.push({ ...data, rank });
+                });
+                
+                myRecords.sort((a, b) => a.rank - b.rank);
+                const bestRecord = myRecords[0];
+                const deviceIcon = bestRecord.device === 'mobile' ? '📱' : '💻';
+                
+                displayEl.innerHTML = `
+                    <div class="success-message">
+                        🏆 최고 순위: ${bestRecord.rank}위 ${deviceIcon}<br>
+                        📊 점수: ${bestRecord.score}점<br>
+                        📅 날짜: ${bestRecord.date}
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('순위 확인 오류:', error);
+                displayEl.innerHTML = '<div class="error-message">검색 중 오류가 발생했습니다</div>';
+            }
+        }
+        
+        async function checkTop20Eligibility(newScore) {
+            if (!window.firebaseDB) return false;
+            
+            try {
+                const { collection, query, orderBy, limit, getDocs } = window.firestoreModules;
+                const q = query(
+                    collection(window.firebaseDB, 'rankings'),
+                    orderBy('score', 'desc'),
+                    limit(20)
+                );
+                
+                const snapshot = await getDocs(q);
+                const rankings = [];
+                snapshot.forEach((doc) => {
+                    rankings.push(doc.data());
+                });
+                
+                return rankings.length < 20 || newScore > rankings[rankings.length - 1].score;
+                
+            } catch (error) {
+                console.error('순위 확인 오류:', error);
+                return false;
+            }
+        }
+        
+        // 게임 그리기 함수들
+        function drawBird() {
+            ctx.save();
+            ctx.translate(bird.x + bird.width/2, bird.y + bird.height/2);
+            ctx.rotate(bird.rotation);
+            
+            if (gameImages.loaded.character && gameImages.character) {
+                ctx.drawImage(
+                    gameImages.character,
+                    -bird.width/2, -bird.height/2,
+                    bird.width, bird.height
+                );
+            } else {
+                ctx.fillStyle = '#FF6B35';
+                ctx.beginPath();
+                ctx.arc(0, 0, bird.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(-8, -8, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(-8, -8, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+        
+        function drawEnvironment() {
+            if (gameImages.loaded.background && gameImages.background) {
+                const bgMove = backgroundScroll * (isMobile ? 0.2 : 0.3);
+                const bgOffset = bgMove % canvas.width;
+                const bgX1 = -bgOffset;
+                const bgX2 = bgX1 + canvas.width;
+                
+                ctx.drawImage(gameImages.background, bgX1, 0, canvas.width, canvas.height);
+                ctx.drawImage(gameImages.background, bgX2, 0, canvas.width, canvas.height);
+                
+            } else {
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height - GROUND_HEIGHT);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(1, '#98FB98');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height - GROUND_HEIGHT);
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                const cloudMove = backgroundScroll * 0.1;
+                const cloudCount = isMobile ? 6 : 10;
+                for(let i = 0; i < cloudCount; i++) {
+                    const cloudX = (cloudMove + i * 150) % (canvas.width + 100) - 50;
+                    drawCloud(cloudX, 60 + (i % 3) * 50);
+                }
+            }
+            
+            const groundY = canvas.height - GROUND_HEIGHT;
+            
+            if (gameImages.loaded.ground && gameImages.ground) {
+                const groundMove = backgroundScroll * (isMobile ? 0.2 : 0.3);
+                const groundOffset = groundMove % canvas.width;
+                const groundX1 = -groundOffset;
+                const groundX2 = groundX1 + canvas.width;
+                
+                ctx.drawImage(gameImages.ground, groundX1, groundY, canvas.width, GROUND_HEIGHT);
+                ctx.drawImage(gameImages.ground, groundX2, groundY, canvas.width, GROUND_HEIGHT);
+            } else {
+                ctx.fillStyle = '#90EE90';
+                ctx.fillRect(0, groundY, canvas.width, GROUND_HEIGHT);
+                
+                ctx.strokeStyle = '#228B22';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, groundY);
+                ctx.lineTo(canvas.width, groundY);
+                ctx.stroke();
+            }
+        }
+        
+        function drawCloud(x, y) {
+            ctx.beginPath();
+            ctx.arc(x + 25, y - 15, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function createObstacle() {
+            const baseGap = isMobile ? 140 : 180;
+            const gap = Math.max(100, baseGap - (difficultyLevel * 6));
+            const minHeight = 60;
+            const maxHeight = canvas.height - gap - GROUND_HEIGHT - 60;
+            const topHeight = minHeight + Math.random() * (maxHeight - minHeight);
+            
+            obstacles.push({
+                x: canvas.width,
+                topHeight: topHeight,
+                bottomY: topHeight + gap,
+                bottomHeight: canvas.height - (topHeight + gap) - GROUND_HEIGHT,
+                width: isMobile ? 45 : 50,
+                passed: false
+            });
+        }
+        
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                if (gameImages.loaded.blockTop && gameImages.blockTop) {
+                    ctx.drawImage(
+                        gameImages.blockTop,
+                        obstacle.x, 0, 
+                        obstacle.width, obstacle.topHeight
+                    );
+                } else {
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(obstacle.x, 0, obstacle.width, obstacle.topHeight);
+                    ctx.strokeStyle = '#006400';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obstacle.x, 0, obstacle.width, obstacle.topHeight);
+                }
+                
+                if (gameImages.loaded.blockBottom && gameImages.blockBottom) {
+                    ctx.drawImage(
+                        gameImages.blockBottom,
+                        obstacle.x, obstacle.bottomY,
+                        obstacle.width, obstacle.bottomHeight
+                    );
+                } else {
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(obstacle.x, obstacle.bottomY, obstacle.width, obstacle.bottomHeight);
+                    ctx.strokeStyle = '#006400';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obstacle.x, obstacle.bottomY, obstacle.width, obstacle.bottomHeight);
+                }
+            });
+        }
+        
+        function updateBird() {
+            bird.velocity += GRAVITY;
+            bird.velocity = Math.max(MIN_VELOCITY, Math.min(MAX_VELOCITY, bird.velocity));
+            bird.y += bird.velocity;
+            bird.rotation = Math.min(bird.velocity * 0.06, Math.PI / 4);
+            
+            if (bird.y <= 0) {
+                bird.y = 0;
+                bird.velocity = 0;
+            }
+            
+            if (bird.y + bird.height >= canvas.height - GROUND_HEIGHT) {
+                gameOver();
+            }
+        }
+        
+        function updateObstacles() {
+            obstacles.forEach(obstacle => {
+                obstacle.x -= gameSpeed;
+                
+                if (!obstacle.passed && obstacle.x + obstacle.width < bird.x) {
+                    obstacle.passed = true;
+                    score++;
+                    updateScore();
+                    
+                    if (score % 5 === 0) {
+                        difficultyLevel++;
+                        gameSpeed += isMobile ? 0.08 : 0.12;
+                        obstacleInterval = Math.max(isMobile ? 100 : 80, obstacleInterval - 2);
+                    }
+                }
+            });
+            
+            obstacles = obstacles.filter(obstacle => obstacle.x > -obstacle.width);
+            
+            obstacleTimer++;
+            if (obstacleTimer >= obstacleInterval) {
+                createObstacle();
+                obstacleTimer = 0;
+            }
+        }
+        
+        function checkCollisions() {
+            const birdLeft = bird.x + 3;
+            const birdRight = bird.x + bird.width - 3;
+            const birdTop = bird.y + 3;
+            const birdBottom = bird.y + bird.height - 3;
+            
+            obstacles.forEach(obstacle => {
+                if (birdRight > obstacle.x && birdLeft < obstacle.x + obstacle.width) {
+                    if (birdTop < obstacle.topHeight || birdBottom > obstacle.bottomY) {
+                        gameOver();
+                    }
+                }
+            });
+        }
+        
+        function jump() {
+            if (gameState === 'playing') {
+                bird.velocity = JUMP_POWER;
+            }
+        }
+        
+        function updateScore() {
+            document.getElementById('score').textContent = `점수: ${score}`;
+        }
+        
+        function gameLoop() {
+            drawEnvironment();
+            
+            if (gameState === 'playing') {
+                backgroundScroll += gameSpeed * 0.5;
+                updateBird();
+                updateObstacles();
+                checkCollisions();
+                drawObstacles();
+                drawBird();
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function startGame() {
+            console.log(`🎮 게임 시작! (${isMobile ? '모바일' : '데스크탑'} 모드)`);
+            gameState = 'playing';
+            score = 0;
+            difficultyLevel = 1;
+            
+            // 디바이스별 초기 설정
+            gameSpeed = isMobile ? 1.8 : 2.2;
+            obstacleInterval = isMobile ? 160 : 140;
+            
+            bird.x = isMobile ? canvas.width * 0.15 : 120;
+            bird.y = canvas.height / 2;
+            bird.velocity = 0;
+            bird.rotation = 0;
+            
+            obstacles = [];
+            obstacleTimer = 0;
+            backgroundScroll = 0;
+            
+            updateScore();
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+        }
+        
+        async function gameOver() {
+            gameState = 'gameOver';
+            document.getElementById('finalScore').textContent = `최종 점수: ${score}`;
+            
+            const isTop20 = await checkTop20Eligibility(score);
+            
+            if (isTop20) {
+                document.getElementById('nameInputSection').classList.remove('hidden');
+            } else {
+                document.getElementById('nameInputSection').classList.add('hidden');
+            }
+            
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+        
+        function restartGame() {
+            startGame();
+        }
+        
+        function showStartScreen() {
+            gameState = 'start';
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            
+            document.getElementById('checkNickname').value = '';
+            document.getElementById('checkPin').value = '';
+            document.getElementById('myRankDisplay').innerHTML = '';
+        }
+        
+        // 이벤트 리스너
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                jump();
+            }
+        });
+        
+        // 터치/클릭 이벤트 (개선됨)
+        function handleTouchStart(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            jump();
+        }
+        
+        canvas.addEventListener('click', handleTouchStart);
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+        
+        // Enter 키 이벤트들
+        document.getElementById('checkNickname').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('checkPin').focus();
+            }
+        });
+        
+        document.getElementById('checkPin').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkMyRanking();
+            }
+        });
+        
+        document.getElementById('playerName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('playerPin').focus();
+            }
+        });
+        
+        document.getElementById('playerPin').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitScore();
+            }
+        });
+        
+        // 화면 크기 변경 감지
+        window.addEventListener('resize', () => {
+            setupCanvas();
+            // 물리 설정 재조정
+            GRAVITY = isMobile ? 0.25 : 0.4;
+            JUMP_POWER = isMobile ? -4.5 : -7.0;
+            MAX_VELOCITY = isMobile ? 8 : 10;
+            MIN_VELOCITY = isMobile ? -8 : -10;
+        });
+        
+        // 초기화
+        console.log(`🎯 Milders Flappy Martin 준비 완료! (${isMobile ? '📱 모바일' : '💻 데스크탑'})`);
+        
+        setTimeout(() => {
+            if (window.firebaseDB) {
+                loadTop3Rankings();
+                updateConnectionStatus('online', isMobile ? '📱 모바일 연결' : '💻 데스크탑 연결');
+            } else {
+                updateConnectionStatus('offline', '❌ Firebase 오류');
+                document.getElementById('top3Rankings').innerHTML = `
+                    <p style="color: #f44336;">Firebase 연결 오류</p>
+                    <p style="font-size: 12px;">새로고침 후 다시 시도해주세요</p>
+                `;
+            }
+        }, 1000);
+        
+        gameLoop();
+    </script>
+</body>
+</html>, y, 20, 0, Math.PI * 2);
+            ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
+            ctx.arc(x + 50, y, 20, 0, Math.PI * 2);
+            ctx.arc(x
