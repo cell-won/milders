@@ -815,17 +815,21 @@
         }
         
         // 관리자 인증 함수
-        async function adminLogin() {
-            try {
-                const { signInWithEmailAndPassword } = window.authModules;
-                await signInWithEmailAndPassword(window.firebaseAuth, 'milders@milders.com', '021502');
-                console.log('관리자 인증 성공');
-                document.getElementById('adminModal').classList.remove('hidden');
-            } catch (error) {
-                console.error('관리자 로그인 실패:', error);
-                alert('관리자 인증에 실패했습니다.');
-            }
-        }
+       async function adminLogin() {
+    try {
+        const { signInWithEmailAndPassword } = window.authModules;
+        const userCredential = await signInWithEmailAndPassword(window.firebaseAuth, 'milders@milders.com', '021502');
+        
+        // 토큰 강제 갱신
+        await userCredential.user.getIdToken(true);
+        
+        console.log('관리자 인증 성공 + 토큰 갱신');
+        document.getElementById('adminModal').classList.remove('hidden');
+    } catch (error) {
+        console.error('관리자 로그인 실패:', error);
+        alert('관리자 인증에 실패했습니다.');
+    }
+}
         
         // 방문자 수 관리
         async function updateVisitorCount() {
