@@ -1,604 +1,260 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Milders Flappy Martin</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
-            font-family: 'Arial', sans-serif;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #gameContainer {
-            position: relative;
-            border: 3px solid #333;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            background: #000;
-        }
-
-        /* 데스크탑 최적화 */
-        @media (min-width: 769px) {
-            #gameContainer {
-                width: 900px;
-                height: 700px;
-            }
-            
-            #gameCanvas {
-                width: 900px;
-                height: 700px;
-            }
-            
-            .ui-overlay {
-                font-size: 24px;
-            }
-            
-            .game-title {
-                font-size: 42px;
-                margin-bottom: 30px;
-            }
-            
-            button {
-                padding: 15px 30px;
-                font-size: 18px;
-                margin: 10px;
-            }
-            
-            input {
-                padding: 12px;
-                font-size: 16px;
-                width: 200px;
-                margin: 8px;
-            }
-            
-            #rankingSection {
-                flex-direction: row;
-                gap: 30px;
-            }
-            
-            #score {
-                font-size: 32px;
-                top: 20px;
-                left: 20px;
-            }
-        }
-
-        /* 모바일 최적화 */
-        @media (max-width: 768px) {
-            body {
-                margin: 0;
-                padding: 0;
-                position: fixed;
-                width: 100%;
-                height: 100%;
-                align-items: stretch;
-                justify-content: stretch;
-            }
-            
-            #gameContainer {
-                width: 100vw;
-                height: 100vh;
-                height: calc(var(--vh, 1vh) * 100);
-                border-radius: 0;
-                border: none;
-                max-width: 100vw;
-                max-height: 100vh;
-                position: relative;
-            }
-            
-            #gameCanvas {
-                width: 100vw;
-                height: 100vh;
-                height: calc(var(--vh, 1vh) * 100);
-                max-width: 100vw;
-                max-height: 100vh;
-                display: block;
-                position: absolute;
-                top: 0;
-                left: 0;
-            }
-            
-            .ui-overlay {
-                font-size: 18px;
-                padding: 20px 15px;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                height: calc(var(--vh, 1vh) * 100);
-                max-width: 100vw;
-                max-height: 100vh;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-            }
-            
-            .ui-overlay::-webkit-scrollbar {
-                display: none;
-            }
-            
-            .game-title {
-                font-size: clamp(24px, 6vw, 32px);
-                margin-bottom: 20px;
-                text-align: center;
-            }
-            
-            button {
-                padding: 16px 24px;
-                font-size: 16px;
-                margin: 8px 5px;
-                min-height: 48px;
-                border-radius: 8px;
-                min-width: 120px;
-                width: auto;
-            }
-            
-            input {
-                padding: 16px;
-                font-size: 16px;
-                width: calc(100% - 10px);
-                max-width: 280px;
-                margin: 10px 0;
-                border-radius: 8px;
-                border: 2px solid #ccc;
-            }
-            
-            #rankingSection {
-                flex-direction: column;
-                gap: 20px;
-                width: 100%;
-                align-items: center;
-                max-width: 100%;
-            }
-            
-            #rankingList, #rankingControls {
-                width: calc(100% - 30px);
-                max-width: 350px;
-                margin: 0 auto;
-            }
-            
-            #score {
-                font-size: clamp(20px, 5vw, 28px);
-                position: fixed;
-                top: env(safe-area-inset-top, 15px);
-                left: 15px;
-                z-index: 1000;
-                max-width: calc(100vw - 30px);
-            }
-            
-            #connectionStatus {
-                position: fixed;
-                top: env(safe-area-inset-top, 15px);
-                right: 15px;
-                font-size: 11px;
-                padding: 4px 8px;
-                z-index: 1000;
-                max-width: 120px;
-            }
-        }
-
-        #gameCanvas {
-            display: block;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-
-        .ui-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            text-align: center;
-            z-index: 100;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        button {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            border: none;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            -webkit-appearance: none;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button.secondary {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-        }
-
-        button.danger {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-        }
-
-        button.warning {
-            background: linear-gradient(135deg, #ff9800, #f57c00);
-        }
-
-        #rankingSection {
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            width: 100%;
-        }
-
-        #rankingList, #rankingControls {
-            background: rgba(255,255,255,0.95);
-            color: #333;
-            padding: 20px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        }
-
-        .rank-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 8px;
-            border-bottom: 1px solid #ddd;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .rank-item:hover {
-            background: rgba(255,215,0,0.1);
-            transform: translateX(5px);
-        }
-
-        .rank-item.top3 {
-            background: linear-gradient(90deg, #ffd700, #ffed4e);
-            padding: 15px 10px;
-            margin: 8px 0;
-            border-radius: 8px;
-            color: #333;
-            border: none;
-            box-shadow: 0 4px 8px rgba(255,215,0,0.3);
-        }
-
-        #score {
-            position: absolute;
-            color: white;
-            font-weight: bold;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
-            z-index: 10;
-            background: rgba(0,0,0,0.5);
-            padding: 8px 15px;
-            border-radius: 25px;
-            backdrop-filter: blur(5px);
-        }
-
-        input[type="text"], input[type="number"] {
-            border: 2px solid #ddd;
-            background: rgba(255,255,255,0.9);
-            color: #333;
-            outline: none;
-            transition: all 0.3s ease;
-            -webkit-appearance: none;
-        }
-
-        input:focus {
-            border-color: #4CAF50;
-            box-shadow: 0 0 10px rgba(76,175,80,0.3);
-        }
-
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
-        #startButtonImage {
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-            max-width: 200px;
-            margin: 20px;
-        }
-
-        #startButtonImage:hover {
-            transform: scale(1.1);
-        }
-
-        .game-title {
-            font-weight: bold;
-            color: #FFD700;
-            text-shadow: 4px 4px 8px rgba(0,0,0,0.8);
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        #connectionStatus {
-            position: absolute;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            backdrop-filter: blur(5px);
-        }
-
-        .online {
-            background: rgba(76,175,80,0.9);
-            color: white;
-        }
-
-        .offline {
-            background: rgba(244,67,54,0.9);
-            color: white;
-        }
-
-        .loading {
-            background: rgba(255,152,0,0.9);
-            color: white;
-        }
-
-        .error-message {
-            color: #f44336;
-            font-size: 14px;
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(244,67,54,0.1);
-            border-radius: 5px;
-        }
-
-        .success-message {
-            color: #4CAF50;
-            font-size: 14px;
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(76,175,80,0.1);
-            border-radius: 5px;
-        }
-
-        /* 관리자 모달 */
-        .admin-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .admin-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 90%;
-            max-height: 80%;
-            overflow-y: auto;
-            color: #333;
-        }
-
-        .backup-item {
-            padding: 10px;
-            margin: 5px 0;
-            background: rgba(0,0,0,0.05);
-            border-radius: 5px;
-            border-left: 4px solid #2196F3;
-        }
-
-        /* iOS 스타일 적용 */
-        @supports (-webkit-touch-callout: none) {
-            input {
-                -webkit-appearance: none;
-                border-radius: 10px;
-            }
-            
-            button {
-                -webkit-appearance: none;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas" width="900" height="700"></canvas>
-        
-        <div id="connectionStatus" class="loading">연결 중...</div>
-        <div id="score">점수: 0</div>
-        
-        <!-- 시작 화면 -->
-        <div id="startScreen" class="ui-overlay">
-            <h1 class="game-title">Milders Flappy Martin</h1>
-            <p>탭하거나 스페이스바로 점프하세요!</p>
-            <img id="startButtonImage" src="startbutton.png" alt="게임 시작" onclick="startGame()">
-            
-            <div id="rankingSection">
-                <div id="rankingList">
-                    <h3>TOP 3 랭킹</h3>
-                    <div id="top3Rankings">로딩 중...</div>
-                </div>
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.type === 'total_visitors') {
+                        totalCount = data.count || 0;
+                    } else if (data.type === 'daily' && data.date === today) {
+                        todayCount = data.count || 0;
+                    }
+                });
                 
-                <div id="rankingControls">
-                    <h3>내 순위 확인</h3>
-                    <input type="text" id="checkNickname" placeholder="닉네임" maxlength="20" autocomplete="off">
-                    <input type="number" id="checkPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
-                    <br>
-                    <button class="secondary" onclick="checkMyRanking()">내 순위 보기</button>
-                    <div id="myRankDisplay"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 게임오버 화면 -->
-        <div id="gameOverScreen" class="ui-overlay hidden">
-            <img src="gameover.png" alt="게임 오버" style="max-width: 250px; margin: 20px;">
-            <p id="finalScore">최종 점수: 0</p>
-            <div id="nameInputSection" class="hidden">
-                <p>축하합니다! 상위 20위 진입!</p>
-                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="20" autocomplete="off">
-                <input type="number" id="playerPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
-                <p style="font-size: 12px; color: #ccc;">* 개인확인번호는 6자리 숫자로 입력하세요</p>
-                <br>
-                <button onclick="submitScore()">랭킹 등록</button>
-                <div id="submitMessage"></div>
-            </div>
-            <button onclick="restartGame()">다시 시작</button>
-            <button onclick="showStartScreen()">메인 메뉴</button>
-        </div>
-
-        <!-- 관리자 모달 -->
-        <div id="adminModal" class="admin-modal hidden">
-            <div class="admin-content">
-                <h2>관리자 모드</h2>
-                <p>관리자 권한으로 로그인되었습니다.</p>
-                <br>
-                <button class="danger" onclick="resetRankings()">랭킹 초기화</button>
-                <button class="warning" onclick="viewBackupData()">백업 기록 보기</button>
-                <button class="secondary" onclick="closeAdminModal()">닫기</button>
-                <div id="adminMessage"></div>
-                <div id="backupDisplay"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBHUAQuZ-JeNmpeDfdbo5kPwW7v2emH8bg",
-            authDomain: "milders-flappy-martin.firebaseapp.com",
-            projectId: "milders-flappy-martin",
-            storageBucket: "milders-flappy-martin.firebasestorage.app",
-            messagingSenderId: "505347834080",
-            appId: "1:505347834080:web:c10bcf079e1681ffd19085"
-        };
-
-        let app, db;
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            window.firebaseDB = db;
-            window.firestoreModules = { collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc };
-            console.log("Firebase 연결 성공!");
-        } catch (error) {
-            console.error("Firebase 연결 실패:", error);
-            window.firebaseDB = null;
-        }
-    </script>
-
-    <script>
-        // 디바이스별 게임 설정
-        const DEVICE_CONFIGS = {
-            mobile: {
-                gameSpeed: 1.9,
-                gravity: 0.22,
-                jumpPower: -4.5,
-                obstacleInterval: 180,
-                birdSize: 55,
-                maxVelocity: 7,
-                minVelocity: -7,
-                speedIncrease: 0.15
-            },
-            desktop: {
-                gameSpeed: 2.9,
-                gravity: 0.45,
-                jumpPower: -7.5,
-                obstacleInterval: 120,
-                birdSize: 50,
-                maxVelocity: 11,
-                minVelocity: -11,
-                speedIncrease: 0.19
-            }
-        };
-
-        // 게임 기본 설정
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        let gameState = 'start';
-        let score = 0;
-        let gameSpeed = 2.9;
-        let difficultyLevel = 1;
-        
-        // 디바이스 감지
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-        let currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
-        
-        // 모바일 뷰포트 설정
-        function setVH() {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        }
-        
-        function setupCanvas() {
-            if (isMobile) {
-                setVH();
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                canvas.style.touchAction = 'manipulation';
-            } else {
-                canvas.width = 900;
-                canvas.height = 700;
+                document.getElementById('visitorCount').textContent = `총 방문자: ${totalCount} | 오늘: ${todayCount}`;
+                
+            } catch (error) {
+                console.error('방문자 수 로드 오류:', error);
+                document.getElementById('visitorCount').textContent = '방문자: 집계 오류';
             }
         }
         
-        setupCanvas();
+        // 공지사항 관리
+        async function loadNotices() {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { collection, query, orderBy, onSnapshot, where } = window.firestoreModules;
+                const q = query(
+                    collection(window.firebaseDB, 'notices'),
+                    where('isActive', '==', true),
+                    orderBy('createdAt', 'asc')
+                );
+                
+                onSnapshot(q, (snapshot) => {
+                    const notices = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const now = Date.now();
+                        
+                        // 만료일 확인
+                        if (data.expireDate && new Date(data.expireDate).getTime() < now) {
+                            // 만료된 공지사항 비활성화
+                            deactivateNotice(doc.id);
+                            return;
+                        }
+                        
+                        notices.push({ id: doc.id, ...data });
+                    });
+                    
+                    checkAndShowNotices(notices);
+                });
+                
+            } catch (error) {
+                console.error('공지사항 로드 오류:', error);
+            }
+        }
         
-        // 게임 물리 설정
-        let GRAVITY = currentConfig.gravity;
-        let JUMP_POWER = currentConfig.jumpPower;
-        let MAX_VELOCITY = currentConfig.maxVelocity;
-        let MIN_VELOCITY = currentConfig.minVelocity;
+        function checkAndShowNotices(notices) {
+            if (notices.length === 0) return;
+            
+            const today = new Date().toDateString();
+            const hiddenNotices = JSON.parse(localStorage.getItem(`hiddenNotices_${today}`) || '[]');
+            
+            // 오늘 숨긴 공지사항 제외
+            const visibleNotices = notices.filter(notice => !hiddenNotices.includes(notice.id));
+            
+            if (visibleNotices.length > 0) {
+                pendingNotices = visibleNotices;
+                currentNoticeIndex = 0;
+                showNextNotice();
+            }
+        }
         
-        // 연결 상태 업데이트
-        function updateConnectionStatus(status, text) {
-            const statusEl = document.getElementById('connectionStatus');
-            statusEl.className = status;
-            statusEl.textContent = text;
+        function showNextNotice() {
+            if (currentNoticeIndex >= pendingNotices.length) return;
+            
+            const notice = pendingNotices[currentNoticeIndex];
+            document.getElementById('noticeModalTitle').textContent = notice.title;
+            document.getElementById('noticeModalContent').textContent = notice.content;
+            document.getElementById('dontShowToday').checked = false;
+            document.getElementById('noticeModal').classList.remove('hidden');
+        }
+        
+        function closeNoticeModal() {
+            const dontShow = document.getElementById('dontShowToday').checked;
+            
+            if (dontShow) {
+                const today = new Date().toDateString();
+                const hiddenNotices = JSON.parse(localStorage.getItem(`hiddenNotices_${today}`) || '[]');
+                const currentNotice = pendingNotices[currentNoticeIndex];
+                
+                if (!hiddenNotices.includes(currentNotice.id)) {
+                    hiddenNotices.push(currentNotice.id);
+                    localStorage.setItem(`hiddenNotices_${today}`, JSON.stringify(hiddenNotices));
+                }
+            }
+            
+            document.getElementById('noticeModal').classList.add('hidden');
+            currentNoticeIndex++;
+            
+            // 다음 공지사항이 있으면 잠시 후 표시
+            if (currentNoticeIndex < pendingNotices.length) {
+                setTimeout(showNextNotice, 1000);
+            }
+        }
+        
+        // 관리자 공지사항 관리
+        function switchAdminTab(tabName) {
+            // 탭 버튼 활성화
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.admin-tab:nth-child(${tabName === 'ranking' ? 1 : 2})`).classList.add('active');
+            
+            // 탭 내용 표시
+            document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'notice') {
+                loadAdminNotices();
+            }
+        }
+        
+        async function saveNotice() {
+            const title = document.getElementById('noticeTitle').value.trim();
+            const content = document.getElementById('noticeContent').value.trim();
+            const expireDate = document.getElementById('noticeExpireDate').value;
+            const messageEl = document.getElementById('noticeMessage');
+            
+            if (!title || !content) {
+                messageEl.innerHTML = '<div class="error-message">제목과 내용을 모두 입력해주세요</div>';
+                return;
+            }
+            
+            if (!window.firebaseDB) {
+                messageEl.innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            try {
+                messageEl.innerHTML = '<div class="loading">공지사항 저장 중...</div>';
+                
+                const { collection, addDoc } = window.firestoreModules;
+                const noticeData = {
+                    title: title,
+                    content: content,
+                    isActive: true,
+                    createdAt: Date.now(),
+                    createdBy: 'admin'
+                };
+                
+                if (expireDate) {
+                    noticeData.expireDate = expireDate;
+                }
+                
+                await addDoc(collection(window.firebaseDB, 'notices'), noticeData);
+                
+                messageEl.innerHTML = '<div class="success-message">공지사항이 저장되었습니다</div>';
+                clearNoticeForm();
+                loadAdminNotices();
+                
+            } catch (error) {
+                console.error('공지사항 저장 오류:', error);
+                messageEl.innerHTML = '<div class="error-message">저장 중 오류가 발생했습니다</div>';
+            }
+        }
+        
+        function clearNoticeForm() {
+            document.getElementById('noticeTitle').value = '';
+            document.getElementById('noticeContent').value = '';
+            document.getElementById('noticeExpireDate').value = '';
+            document.getElementById('noticeMessage').innerHTML = '';
+        }
+        
+        async function loadAdminNotices() {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { collection, query, orderBy, getDocs } = window.firestoreModules;
+                const q = query(collection(window.firebaseDB, 'notices'), orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                let html = '';
+                const now = Date.now();
+                
+                if (snapshot.empty) {
+                    html = '<p>등록된 공지사항이 없습니다.</p>';
+                } else {
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const isExpired = data.expireDate && new Date(data.expireDate).getTime() < now;
+                        const statusText = data.isActive ? (isExpired ? '만료됨' : '활성') : '비활성';
+                        const statusColor = data.isActive ? (isExpired ? '#ff9800' : '#4CAF50') : '#f44336';
+                        
+                        html += `
+                            <div class="notice-item ${isExpired ? 'expired' : ''}">
+                                <div class="notice-item-title">${data.title}</div>
+                                <div class="notice-item-meta">
+                                    작성일: ${new Date(data.createdAt).toLocaleDateString('ko-KR')} | 
+                                    상태: <span style="color: ${statusColor}">${statusText}</span>
+                                    ${data.expireDate ? ` | 만료일: ${new Date(data.expireDate).toLocaleDateString('ko-KR')}` : ''}
+                                </div>
+                                <div style="margin-top: 10px; color: #666; font-size: 14px;">${data.content}</div>
+                                <div class="notice-item-actions">
+                                    ${data.isActive ? 
+                                        `<button class="danger" style="padding: 5px 10px; font-size: 12px;" onclick="deactivateNotice('${doc.id}')">비활성화</button>` :
+                                        `<button class="secondary" style="padding: 5px 10px; font-size: 12px;" onclick="activateNotice('${doc.id}')">활성화</button>`
+                                    }
+                                    <button class="danger" style="padding: 5px 10px; font-size: 12px; margin-left: 5px;" onclick="deleteNotice('${doc.id}')">삭제</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('noticeList').innerHTML = html;
+                
+            } catch (error) {
+                console.error('관리자 공지사항 로드 오류:', error);
+                document.getElementById('noticeList').innerHTML = '<p>공지사항 로드 중 오류가 발생했습니다.</p>';
+            }
+        }
+        
+        async function deactivateNotice(noticeId) {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { doc, updateDoc } = window.firestoreModules;
+                await updateDoc(doc(window.firebaseDB, 'notices', noticeId), {
+                    isActive: false
+                });
+                loadAdminNotices();
+            } catch (error) {
+                console.error('공지사항 비활성화 오류:', error);
+            }
+        }
+        
+        async function activateNotice(noticeId) {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { doc, updateDoc } = window.firestoreModules;
+                await updateDoc(doc(window.firebaseDB, 'notices', noticeId), {
+                    isActive: true
+                });
+                loadAdminNotices();
+            } catch (error) {
+                console.error('공지사항 활성화 오류:', error);
+            }
+        }
+        
+        async function deleteNotice(noticeId) {
+            if (!confirm('정말로 이 공지사항을 삭제하시겠습니까?')) return;
+            
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { doc, deleteDoc } = window.firestoreModules;
+                await deleteDoc(doc(window.firebaseDB, 'notices', noticeId));
+                loadAdminNotices();
+            } catch (error) {
+                console.error('공지사항 삭제 오류:', error);
+            }
         }
         
         // 이미지 관리
@@ -670,7 +326,7 @@
             return Math.abs(hash).toString().slice(0, 6);
         }
         
-        // 관리자 기능
+        // 관리자 랭킹 기능
         async function resetRankings() {
             if (!window.firebaseDB) {
                 document.getElementById('adminMessage').innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
@@ -730,7 +386,7 @@
             
             try {
                 const { collection, query, orderBy, getDocs } = window.firestoreModules;
-                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('resetNumber', 'desc'), orderBy('score', 'desc'));
+                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('score', 'desc'));
                 const snapshot = await getDocs(backupQuery);
                 
                 let html = '<h3>백업된 랭킹 기록</h3>';
@@ -738,25 +394,41 @@
                 if (snapshot.empty) {
                     html += '<p>백업된 기록이 없습니다.</p>';
                 } else {
-                    let currentResetNumber = null;
-                    let resetCount = 0;
+                    // resetNumber로 그룹화
+                    const groupedData = {};
                     
-                    snapshot.forEach((doc, index) => {
+                    snapshot.forEach((doc) => {
                         const data = doc.data();
-                        
-                        if (data.resetNumber !== currentResetNumber) {
-                            currentResetNumber = data.resetNumber;
-                            resetCount++;
-                            html += `<h4 style="margin-top: 20px; color: #2196F3;">${resetCount}번째 초기화 (${data.backupDate})</h4>`;
+                        const resetNum = data.resetNumber || 'unknown';
+                        if (!groupedData[resetNum]) {
+                            groupedData[resetNum] = [];
                         }
+                        groupedData[resetNum].push(data);
+                    });
+                    
+                    // resetNumber 내림차순으로 정렬 (최신 초기화부터)
+                    const sortedResetNumbers = Object.keys(groupedData).sort((a, b) => {
+                        if (a === 'unknown') return 1;
+                        if (b === 'unknown') return -1;
+                        return parseInt(b) - parseInt(a);
+                    });
+                    
+                    sortedResetNumbers.forEach((resetNum, groupIndex) => {
+                        const group = groupedData[resetNum];
+                        group.sort((a, b) => b.score - a.score); // 점수 내림차순
                         
-                        const deviceIcon = data.device === 'mobile' ? 'M' : 'D';
-                        const rank = snapshot.docs.filter(d => d.data().resetNumber === currentResetNumber).findIndex(d => d.id === doc.id) + 1;
+                        const firstItem = group[0];
+                        const resetDate = firstItem.backupDate || '날짜 정보 없음';
                         
-                        html += `<div class="backup-item">
-                            ${rank}위. ${data.nickname} [${deviceIcon}] - ${data.score}점
-                            <br><small>기록일: ${data.date}</small>
-                        </div>`;
+                        html += `<h4 style="margin-top: 20px; color: #2196F3;">${groupIndex + 1}번째 초기화 (${resetDate})</h4>`;
+                        
+                        group.forEach((data, index) => {
+                            const deviceIcon = data.device === 'mobile' ? '📱' : '💻';
+                            html += `<div class="backup-item">
+                                ${index + 1}위. ${data.nickname} ${deviceIcon} - ${data.score}점
+                                <br><small>기록일: ${data.date || '정보 없음'}</small>
+                            </div>`;
+                        });
                     });
                 }
                 
@@ -764,7 +436,7 @@
                 
             } catch (error) {
                 console.error('백업 조회 오류:', error);
-                document.getElementById('adminMessage').innerHTML = '<div class="error-message">백업 조회 중 오류가 발생했습니다</div>';
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">백업 조회 중 오류가 발생했습니다: ' + error.message + '</div>';
             }
         }
         
@@ -860,7 +532,7 @@
             let html = '';
             rankings.forEach((player, index) => {
                 const medal = ['🥇', '🥈', '🥉'][index];
-                const deviceIcon = player.device === 'mobile' ? '[M]' : '[D]';
+                const deviceIcon = player.device === 'mobile' ? '📱' : '💻';
                 html += `<div class="rank-item top3">
                     <span>${medal} ${index + 1}위. ${player.nickname} ${deviceIcon}</span>
                     <span>${player.score}점</span>
@@ -931,7 +603,7 @@
                 
                 myRecords.sort((a, b) => a.rank - b.rank);
                 const bestRecord = myRecords[0];
-                const deviceIcon = bestRecord.device === 'mobile' ? '[M]' : '[D]';
+                const deviceIcon = bestRecord.device === 'mobile' ? '📱' : '💻';
                 
                 displayEl.innerHTML = `
                     <div class="success-message">
@@ -1382,6 +1054,9 @@
             if (window.firebaseDB) {
                 loadTop3Rankings();
                 updateConnectionStatus('online', isMobile ? '모바일 연결' : '데스크탑 연결');
+                loadNotices(); // 공지사항 로드
+                updateVisitorCount(); // 방문자 수 업데이트
+                loadVisitorCount(); // 방문자 수 표시
             } else {
                 updateConnectionStatus('offline', 'Firebase 오류');
                 document.getElementById('top3Rankings').innerHTML = `
@@ -1394,4 +1069,852 @@
         gameLoop();
     </script>
 </body>
-</html>
+</html><!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Milders Flappy Martin</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 3px solid #333;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        /* 데스크탑 최적화 */
+        @media (min-width: 769px) {
+            #gameContainer {
+                width: 900px;
+                height: 700px;
+            }
+            
+            #gameCanvas {
+                width: 900px;
+                height: 700px;
+            }
+            
+            .ui-overlay {
+                font-size: 24px;
+            }
+            
+            .game-title {
+                font-size: 42px;
+                margin-bottom: 30px;
+            }
+            
+            button {
+                padding: 15px 30px;
+                font-size: 18px;
+                margin: 10px;
+            }
+            
+            input {
+                padding: 12px;
+                font-size: 16px;
+                width: 200px;
+                margin: 8px;
+            }
+            
+            #rankingSection {
+                flex-direction: row;
+                gap: 30px;
+            }
+            
+            #score {
+                font-size: 32px;
+                top: 20px;
+                left: 20px;
+            }
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            body {
+                margin: 0;
+                padding: 0;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                align-items: stretch;
+                justify-content: stretch;
+            }
+            
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                border-radius: 0;
+                border: none;
+                max-width: 100vw;
+                max-height: 100vh;
+                position: relative;
+            }
+            
+            #gameCanvas {
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                max-width: 100vw;
+                max-height: 100vh;
+                display: block;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            
+            .ui-overlay {
+                font-size: 18px;
+                padding: 20px 15px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                max-width: 100vw;
+                max-height: 100vh;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .ui-overlay::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .game-title {
+                font-size: clamp(24px, 6vw, 32px);
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            
+            button {
+                padding: 16px 24px;
+                font-size: 16px;
+                margin: 8px 5px;
+                min-height: 48px;
+                border-radius: 8px;
+                min-width: 120px;
+                width: auto;
+            }
+            
+            input, textarea {
+                padding: 16px;
+                font-size: 16px;
+                width: calc(100% - 10px);
+                max-width: 280px;
+                margin: 10px 0;
+                border-radius: 8px;
+                border: 2px solid #ccc;
+            }
+            
+            #rankingSection {
+                flex-direction: column;
+                gap: 20px;
+                width: 100%;
+                align-items: center;
+                max-width: 100%;
+            }
+            
+            #rankingList, #rankingControls {
+                width: calc(100% - 30px);
+                max-width: 350px;
+                margin: 0 auto;
+            }
+            
+            #score {
+                font-size: clamp(20px, 5vw, 28px);
+                position: fixed;
+                top: env(safe-area-inset-top, 15px);
+                left: 15px;
+                z-index: 1000;
+                max-width: calc(100vw - 30px);
+            }
+            
+            #connectionStatus {
+                position: fixed;
+                top: env(safe-area-inset-top, 15px);
+                right: 15px;
+                font-size: 11px;
+                padding: 4px 8px;
+                z-index: 1000;
+                max-width: 120px;
+            }
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            -webkit-appearance: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        button.warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+
+        #rankingSection {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #rankingList, #rankingControls {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 8px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .rank-item:hover {
+            background: rgba(255,215,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .rank-item.top3 {
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+            padding: 15px 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            color: #333;
+            border: none;
+            box-shadow: 0 4px 8px rgba(255,215,0,0.3);
+        }
+
+        #score {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px);
+        }
+
+        input[type="text"], input[type="password"], textarea {
+            border: 2px solid #ddd;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76,175,80,0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        #startButtonImage {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            max-width: 200px;
+            margin: 20px;
+        }
+
+        #startButtonImage:hover {
+            transform: scale(1.1);
+        }
+
+        .game-title {
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.8);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #connectionStatus {
+            position: absolute;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+
+        .online {
+            background: rgba(76,175,80,0.9);
+            color: white;
+        }
+
+        .offline {
+            background: rgba(244,67,54,0.9);
+            color: white;
+        }
+
+        .loading {
+            background: rgba(255,152,0,0.9);
+            color: white;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 14px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(244,67,54,0.1);
+            border-radius: 5px;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            font-size: 14px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(76,175,80,0.1);
+            border-radius: 5px;
+        }
+
+        /* 관리자 모달 */
+        .admin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .admin-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #333;
+        }
+
+        .backup-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0,0,0,0.05);
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+
+        /* 공지사항 모달 */
+        .notice-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .notice-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .notice-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .notice-body {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+
+        .notice-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .notice-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 관리자 공지사항 관리 */
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .admin-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .admin-tab.active {
+            border-bottom-color: #4CAF50;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .admin-tab-content {
+            display: none;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        .notice-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .notice-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .notice-item.expired {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
+        .notice-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .notice-item-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .notice-item-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        /* 방문자 카운터 */
+        .visitor-counter {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        /* iOS 스타일 적용 */
+        @supports (-webkit-touch-callout: none) {
+            input, textarea {
+                -webkit-appearance: none;
+                border-radius: 10px;
+            }
+            
+            button {
+                -webkit-appearance: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="900" height="700"></canvas>
+        
+        <div id="connectionStatus" class="loading">연결 중...</div>
+        <div id="score">점수: 0</div>
+        
+        <!-- 시작 화면 -->
+        <div id="startScreen" class="ui-overlay">
+            <h1 class="game-title">Milders Flappy Martin</h1>
+            <p>탭하거나 스페이스바로 점프하세요!</p>
+            <img id="startButtonImage" src="startbutton.png" alt="게임 시작" onclick="startGame()">
+            
+            <div id="rankingSection">
+                <div id="rankingList">
+                    <h3>TOP 3 랭킹</h3>
+                    <div id="top3Rankings">로딩 중...</div>
+                </div>
+                
+                <div id="rankingControls">
+                    <h3>내 순위 확인</h3>
+                    <input type="text" id="checkNickname" placeholder="닉네임" maxlength="20" autocomplete="off">
+                    <input type="password" id="checkPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                    <br>
+                    <button class="secondary" onclick="checkMyRanking()">내 순위 보기</button>
+                    <div id="myRankDisplay"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 게임오버 화면 -->
+        <div id="gameOverScreen" class="ui-overlay hidden">
+            <img src="gameover.png" alt="게임 오버" style="max-width: 250px; margin: 20px;">
+            <p id="finalScore">최종 점수: 0</p>
+            <div id="nameInputSection" class="hidden">
+                <p>축하합니다! 상위 20위 진입!</p>
+                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="20" autocomplete="off">
+                <input type="password" id="playerPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                <p style="font-size: 12px; color: #ccc;">* 개인확인번호는 6자리 숫자로 입력하세요</p>
+                <br>
+                <button onclick="submitScore()">랭킹 등록</button>
+                <div id="submitMessage"></div>
+            </div>
+            <button onclick="restartGame()">다시 시작</button>
+            <button onclick="showStartScreen()">메인 메뉴</button>
+        </div>
+
+        <!-- 관리자 모달 -->
+        <div id="adminModal" class="admin-modal hidden">
+            <div class="admin-content">
+                <h2>관리자 모드</h2>
+                
+                <div class="admin-tabs">
+                    <div class="admin-tab active" onclick="switchAdminTab('ranking')">랭킹 관리</div>
+                    <div class="admin-tab" onclick="switchAdminTab('notice')">공지사항 관리</div>
+                </div>
+                
+                <!-- 랭킹 관리 탭 -->
+                <div id="ranking-tab" class="admin-tab-content active">
+                    <p>관리자 권한으로 로그인되었습니다.</p>
+                    <br>
+                    <button class="danger" onclick="resetRankings()">랭킹 초기화</button>
+                    <button class="warning" onclick="viewBackupData()">백업 기록 보기</button>
+                    <div id="adminMessage"></div>
+                    <div id="backupDisplay"></div>
+                </div>
+                
+                <!-- 공지사항 관리 탭 -->
+                <div id="notice-tab" class="admin-tab-content">
+                    <h3>새 공지사항 작성</h3>
+                    <div class="notice-form">
+                        <input type="text" id="noticeTitle" placeholder="공지사항 제목" maxlength="100">
+                        <textarea id="noticeContent" placeholder="공지사항 내용" rows="5" maxlength="1000"></textarea>
+                        <input type="date" id="noticeExpireDate" title="만료일 (선택사항)">
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="saveNotice()">공지사항 저장</button>
+                            <button class="secondary" onclick="clearNoticeForm()">초기화</button>
+                        </div>
+                        <div id="noticeMessage"></div>
+                    </div>
+                    
+                    <hr style="margin: 30px 0;">
+                    
+                    <h3>기존 공지사항 관리</h3>
+                    <div id="noticeList">로딩 중...</div>
+                </div>
+                
+                <br>
+                <button class="secondary" onclick="closeAdminModal()">닫기</button>
+            </div>
+        </div>
+
+        <!-- 공지사항 표시 모달 -->
+        <div id="noticeModal" class="notice-modal hidden">
+            <div class="notice-content">
+                <div class="notice-title" id="noticeModalTitle"></div>
+                <div class="notice-body" id="noticeModalContent"></div>
+                <div class="notice-actions">
+                    <div class="notice-checkbox">
+                        <input type="checkbox" id="dontShowToday">
+                        <label for="dontShowToday">오늘 하루 보지 않기</label>
+                    </div>
+                    <button onclick="closeNoticeModal()">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 방문자 카운터 -->
+    <div class="visitor-counter">
+        <span id="visitorCount">방문자: 로딩중...</span>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHUAQuZ-JeNmpeDfdbo5kPwW7v2emH8bg",
+            authDomain: "milders-flappy-martin.firebaseapp.com",
+            projectId: "milders-flappy-martin",
+            storageBucket: "milders-flappy-martin.firebasestorage.app",
+            messagingSenderId: "505347834080",
+            appId: "1:505347834080:web:c10bcf079e1681ffd19085"
+        };
+
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            window.firebaseDB = db;
+            window.firestoreModules = { collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc, updateDoc, increment };
+            console.log("Firebase 연결 성공!");
+        } catch (error) {
+            console.error("Firebase 연결 실패:", error);
+            window.firebaseDB = null;
+        }
+    </script>
+
+    <script>
+        // 디바이스별 게임 설정
+        const DEVICE_CONFIGS = {
+            mobile: {
+                gameSpeed: 1.9,
+                gravity: 0.22,
+                jumpPower: -4.5,
+                obstacleInterval: 180,
+                birdSize: 55,
+                maxVelocity: 7,
+                minVelocity: -7,
+                speedIncrease: 0.15
+            },
+            desktop: {
+                gameSpeed: 2.9,
+                gravity: 0.45,
+                jumpPower: -7.5,
+                obstacleInterval: 120,
+                birdSize: 50,
+                maxVelocity: 11,
+                minVelocity: -11,
+                speedIncrease: 0.19
+            }
+        };
+
+        // 게임 기본 설정
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = 'start';
+        let score = 0;
+        let gameSpeed = 2.9;
+        let difficultyLevel = 1;
+        let currentNoticeIndex = 0;
+        let pendingNotices = [];
+        
+        // 디바이스 감지
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        let currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+        
+        // 모바일 뷰포트 설정
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        function setupCanvas() {
+            if (isMobile) {
+                setVH();
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                canvas.style.touchAction = 'manipulation';
+            } else {
+                canvas.width = 900;
+                canvas.height = 700;
+            }
+        }
+        
+        setupCanvas();
+        
+        // 게임 물리 설정
+        let GRAVITY = currentConfig.gravity;
+        let JUMP_POWER = currentConfig.jumpPower;
+        let MAX_VELOCITY = currentConfig.maxVelocity;
+        let MIN_VELOCITY = currentConfig.minVelocity;
+        
+        // 연결 상태 업데이트
+        function updateConnectionStatus(status, text) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = status;
+            statusEl.textContent = text;
+        }
+        
+        // 방문자 수 관리
+        async function updateVisitorCount() {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const today = new Date().toDateString();
+                const { collection, doc, updateDoc, increment, getDocs, addDoc } = window.firestoreModules;
+                
+                // 총 방문자 수 업데이트
+                const totalVisitorRef = doc(window.firebaseDB, 'stats', 'total_visitors');
+                await updateDoc(totalVisitorRef, {
+                    count: increment(1)
+                }).catch(async () => {
+                    // 문서가 없으면 생성
+                    await addDoc(collection(window.firebaseDB, 'stats'), {
+                        type: 'total_visitors',
+                        count: 1
+                    });
+                });
+                
+                // 오늘 방문자 수 업데이트
+                const todayVisitorRef = doc(window.firebaseDB, 'stats', `daily_${today.replace(/\s/g, '_')}`);
+                await updateDoc(todayVisitorRef, {
+                    count: increment(1),
+                    date: today
+                }).catch(async () => {
+                    // 문서가 없으면 생성
+                    await addDoc(collection(window.firebaseDB, 'stats'), {
+                        type: 'daily',
+                        count: 1,
+                        date: today
+                    });
+                });
+                
+                loadVisitorCount();
+                
+            } catch (error) {
+                console.error('방문자 수 업데이트 오류:', error);
+            }
+        }
+        
+        async function loadVisitorCount() {
+            if (!window.firebaseDB) {
+                document.getElementById('visitorCount').textContent = '방문자: 집계 불가';
+                return;
+            }
+            
+            try {
+                const today = new Date().toDateString();
+                const { collection, getDocs, query, where } = window.firestoreModules;
+                
+                const statsQuery = query(collection(window.firebaseDB, 'stats'));
+                const snapshot = await getDocs(statsQuery);
+                
+                let totalCount = 0;
+                let todayCount = 0;
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.type === 'total_visitors') {
