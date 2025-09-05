@@ -76,29 +76,39 @@
             }
         }
 
-        /* 모바일 최적화 */
+        /* 모바일 최적화 - 완전히 새로 작성 */
         @media (max-width: 768px) {
             body {
+                margin: 0;
                 padding: 0;
-                align-items: flex-start;
-                padding-top: env(safe-area-inset-top);
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                align-items: stretch;
+                justify-content: stretch;
             }
             
             #gameContainer {
                 width: 100vw;
                 height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
                 border-radius: 0;
                 border: none;
                 max-width: 100vw;
                 max-height: 100vh;
+                position: relative;
             }
             
             #gameCanvas {
                 width: 100vw;
                 height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
                 max-width: 100vw;
                 max-height: 100vh;
                 display: block;
+                position: absolute;
+                top: 0;
+                left: 0;
             }
             
             .ui-overlay {
@@ -106,27 +116,43 @@
                 padding: 20px 15px;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                max-width: 100vw;
+                max-height: 100vh;
+                /* 스크롤바 숨기기 */
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .ui-overlay::-webkit-scrollbar {
+                display: none;
             }
             
             .game-title {
-                font-size: 28px;
+                font-size: clamp(24px, 6vw, 32px);
                 margin-bottom: 20px;
                 text-align: center;
             }
             
             button {
-                padding: 14px 24px;
+                padding: 16px 24px;
                 font-size: 16px;
                 margin: 8px 5px;
                 min-height: 48px;
                 border-radius: 8px;
                 min-width: 120px;
+                width: auto;
             }
             
             input {
-                padding: 14px;
+                padding: 16px;
                 font-size: 16px;
-                width: 90%;
+                width: calc(100% - 10px);
                 max-width: 280px;
                 margin: 10px 0;
                 border-radius: 8px;
@@ -138,38 +164,67 @@
                 gap: 20px;
                 width: 100%;
                 align-items: center;
+                max-width: 100%;
             }
             
             #rankingList, #rankingControls {
-                width: 95%;
+                width: calc(100% - 30px);
                 max-width: 350px;
-                margin: 0;
+                margin: 0 auto;
             }
             
             #score {
-                font-size: 24px;
+                font-size: clamp(20px, 5vw, 28px);
+                position: fixed;
                 top: env(safe-area-inset-top, 15px);
                 left: 15px;
                 z-index: 1000;
+                max-width: calc(100vw - 30px);
             }
             
             #connectionStatus {
+                position: fixed;
                 top: env(safe-area-inset-top, 15px);
                 right: 15px;
                 font-size: 11px;
                 padding: 4px 8px;
+                z-index: 1000;
+                max-width: 120px;
             }
             
             #startButtonImage {
                 max-width: 160px;
                 margin: 15px;
             }
+            
+            /* 게임오버 화면 모바일 최적화 */
+            #gameOverScreen {
+                justify-content: flex-start;
+                padding-top: 10vh;
+            }
+            
+            #gameOverScreen img {
+                max-width: 200px;
+                margin: 10px;
+            }
+            
+            #nameInputSection {
+                width: calc(100% - 30px);
+                max-width: 300px;
+                margin: 15px auto;
+            }
+            
+            #myRankResult {
+                width: calc(100% - 20px);
+                max-width: 280px;
+                margin: 10px auto;
+            }
         }
 
         #gameCanvas {
             display: block;
             cursor: pointer;
-            touch-action: none;
+            touch-action: manipulation;
         }
 
         .ui-overlay {
@@ -204,6 +259,7 @@
             transition: all 0.3s ease;
             font-weight: bold;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            -webkit-appearance: none;
         }
 
         button:hover {
@@ -223,6 +279,7 @@
             display: flex;
             align-items: flex-start;
             justify-content: center;
+            width: 100%;
         }
 
         #rankingList, #rankingControls {
@@ -276,6 +333,7 @@
             color: #333;
             outline: none;
             transition: all 0.3s ease;
+            -webkit-appearance: none;
         }
 
         input:focus {
@@ -352,11 +410,6 @@
             margin: 15px 0;
             max-width: 320px;
             backdrop-filter: blur(10px);
-        }
-
-        /* 스크롤바 숨기기 */
-        .ui-overlay::-webkit-scrollbar {
-            display: none;
         }
 
         /* iOS 스타일 적용 */
@@ -448,6 +501,28 @@
     </script>
 
     <script>
+        // 디바이스별 게임 설정
+        const DEVICE_CONFIGS = {
+            mobile: {
+                gameSpeed: 1.1,
+                gravity: 0.16,
+                jumpPower: -3.5,
+                obstacleInterval: 210,
+                birdSize: 30,
+                maxVelocity: 6,
+                minVelocity: -6
+            },
+            desktop: {
+                gameSpeed: 2.2,
+                gravity: 0.4,
+                jumpPower: -7.0,
+                obstacleInterval: 140,
+                birdSize: 40,
+                maxVelocity: 10,
+                minVelocity: -10
+            }
+        };
+
         // 게임 기본 설정
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -460,17 +535,26 @@
         // 디바이스 감지 및 게임 설정
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
         
+        // 현재 디바이스 설정
+        let currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+        
+        // 모바일 뷰포트 높이 정확히 계산
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
         // 캔버스 크기 동적 설정
         function setupCanvas() {
             if (isMobile) {
+                setVH();
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
-                gameSpeed = 1.8;
+                canvas.style.touchAction = 'manipulation';
                 console.log("📱 모바일 모드 활성화");
             } else {
                 canvas.width = 900;
                 canvas.height = 700;
-                gameSpeed = 2.2;
                 console.log("💻 데스크탑 모드 활성화");
             }
         }
@@ -478,10 +562,10 @@
         setupCanvas();
         
         // 게임 물리 설정 (디바이스별)
-        let GRAVITY = isMobile ? 0.25 : 0.4;
-        let JUMP_POWER = isMobile ? -4.5 : -7.0;
-        let MAX_VELOCITY = isMobile ? 8 : 10;
-        let MIN_VELOCITY = isMobile ? -8 : -10;
+        let GRAVITY = currentConfig.gravity;
+        let JUMP_POWER = currentConfig.jumpPower;
+        let MAX_VELOCITY = currentConfig.maxVelocity;
+        let MIN_VELOCITY = currentConfig.minVelocity;
         
         // 연결 상태 업데이트
         function updateConnectionStatus(status, text) {
@@ -532,16 +616,21 @@
         const bird = {
             x: isMobile ? canvas.width * 0.15 : 120,
             y: canvas.height / 2,
-            width: isMobile ? 35 : 40,
-            height: isMobile ? 35 : 40,
+            width: currentConfig.birdSize,
+            height: currentConfig.birdSize,
             velocity: 0,
             rotation: 0
         };
         
         let obstacles = [];
         let obstacleTimer = 0;
-        let obstacleInterval = isMobile ? 160 : 140;
+        let obstacleInterval = currentConfig.obstacleInterval;
         let backgroundScroll = 0;
+        
+        // 성능 최적화 - 프레임 제한
+        const targetFPS = isMobile ? 45 : 60;
+        let lastTime = 0;
+        const frameDelay = 1000 / targetFPS;
         
         // 암호화 함수
         function simpleHash(str) {
@@ -778,7 +867,7 @@
         
         function drawEnvironment() {
             if (gameImages.loaded.background && gameImages.background) {
-                const bgMove = backgroundScroll * (isMobile ? 0.2 : 0.3);
+                const bgMove = backgroundScroll * (isMobile ? 0.15 : 0.3);
                 const bgOffset = bgMove % canvas.width;
                 const bgX1 = -bgOffset;
                 const bgX2 = bgX1 + canvas.width;
@@ -794,8 +883,8 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height - GROUND_HEIGHT);
                 
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                const cloudMove = backgroundScroll * 0.1;
-                const cloudCount = isMobile ? 6 : 10;
+                const cloudMove = backgroundScroll * 0.05;
+                const cloudCount = isMobile ? 4 : 8;
                 for(let i = 0; i < cloudCount; i++) {
                     const cloudX = (cloudMove + i * 150) % (canvas.width + 100) - 50;
                     drawCloud(cloudX, 60 + (i % 3) * 50);
@@ -805,7 +894,7 @@
             const groundY = canvas.height - GROUND_HEIGHT;
             
             if (gameImages.loaded.ground && gameImages.ground) {
-                const groundMove = backgroundScroll * (isMobile ? 0.2 : 0.3);
+                const groundMove = backgroundScroll * (isMobile ? 0.15 : 0.3);
                 const groundOffset = groundMove % canvas.width;
                 const groundX1 = -groundOffset;
                 const groundX2 = groundX1 + canvas.width;
@@ -832,8 +921,8 @@
         }
         
         function createObstacle() {
-            const baseGap = isMobile ? 140 : 180;
-            const gap = Math.max(100, baseGap - (difficultyLevel * 6));
+            const baseGap = isMobile ? 160 : 180;
+            const gap = Math.max(120, baseGap - (difficultyLevel * 4));
             const minHeight = 60;
             const maxHeight = canvas.height - gap - GROUND_HEIGHT - 60;
             const topHeight = minHeight + Math.random() * (maxHeight - minHeight);
@@ -843,7 +932,7 @@
                 topHeight: topHeight,
                 bottomY: topHeight + gap,
                 bottomHeight: canvas.height - (topHeight + gap) - GROUND_HEIGHT,
-                width: isMobile ? 45 : 50,
+                width: isMobile ? 40 : 50,
                 passed: false
             });
         }
@@ -907,8 +996,8 @@
                     
                     if (score % 5 === 0) {
                         difficultyLevel++;
-                        gameSpeed += isMobile ? 0.08 : 0.12;
-                        obstacleInterval = Math.max(isMobile ? 100 : 80, obstacleInterval - 2);
+                        gameSpeed += isMobile ? 0.05 : 0.12;
+                        obstacleInterval = Math.max(isMobile ? 120 : 80, obstacleInterval - 2);
                     }
                 }
             });
@@ -947,18 +1036,21 @@
             document.getElementById('score').textContent = `점수: ${score}`;
         }
         
-        function gameLoop() {
-            drawEnvironment();
-            
-            if (gameState === 'playing') {
-                backgroundScroll += gameSpeed * 0.5;
-                updateBird();
-                updateObstacles();
-                checkCollisions();
-                drawObstacles();
-                drawBird();
+        function gameLoop(currentTime) {
+            if (currentTime - lastTime >= frameDelay) {
+                drawEnvironment();
+                
+                if (gameState === 'playing') {
+                    backgroundScroll += gameSpeed * 0.3;
+                    updateBird();
+                    updateObstacles();
+                    checkCollisions();
+                    drawObstacles();
+                    drawBird();
+                }
+                
+                lastTime = currentTime;
             }
-            
             requestAnimationFrame(gameLoop);
         }
         
@@ -969,11 +1061,18 @@
             difficultyLevel = 1;
             
             // 디바이스별 초기 설정
-            gameSpeed = isMobile ? 1.8 : 2.2;
-            obstacleInterval = isMobile ? 160 : 140;
+            currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+            gameSpeed = currentConfig.gameSpeed;
+            obstacleInterval = currentConfig.obstacleInterval;
+            GRAVITY = currentConfig.gravity;
+            JUMP_POWER = currentConfig.jumpPower;
+            MAX_VELOCITY = currentConfig.maxVelocity;
+            MIN_VELOCITY = currentConfig.minVelocity;
             
             bird.x = isMobile ? canvas.width * 0.15 : 120;
             bird.y = canvas.height / 2;
+            bird.width = currentConfig.birdSize;
+            bird.height = currentConfig.birdSize;
             bird.velocity = 0;
             bird.rotation = 0;
             
@@ -1041,6 +1140,13 @@
             e.preventDefault();
         }, { passive: false });
         
+        // 더블탭 줌 방지
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
         // Enter 키 이벤트들
         document.getElementById('checkNickname').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -1070,10 +1176,19 @@
         window.addEventListener('resize', () => {
             setupCanvas();
             // 물리 설정 재조정
-            GRAVITY = isMobile ? 0.25 : 0.4;
-            JUMP_POWER = isMobile ? -4.5 : -7.0;
-            MAX_VELOCITY = isMobile ? 8 : 10;
-            MIN_VELOCITY = isMobile ? -8 : -10;
+            currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+            GRAVITY = currentConfig.gravity;
+            JUMP_POWER = currentConfig.jumpPower;
+            MAX_VELOCITY = currentConfig.maxVelocity;
+            MIN_VELOCITY = currentConfig.minVelocity;
+        });
+        
+        // 뷰포트 높이 변경 감지 (모바일)
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                setVH();
+                setupCanvas();
+            }, 100);
         });
         
         // 초기화
@@ -1095,7 +1210,4 @@
         gameLoop();
     </script>
 </body>
-</html>, y, 20, 0, Math.PI * 2);
-            ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
-            ctx.arc(x + 50, y, 20, 0, Math.PI * 2);
-            ctx.arc(x
+</html>
