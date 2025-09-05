@@ -1265,6 +1265,13 @@
                     e.target.value = e.target.value.slice(0, 6);
                 }
             });
+            
+            pinInput.addEventListener('keydown', (e) => {
+                if (!/[0-9]/.test(e.key) && 
+                    !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
         }
         
         function setupNicknameValidation(elementId) {
