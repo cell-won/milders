@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Milders Flappy Martin</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 3px solid #333;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        /* 데스크탑 최적화 */
+        @media (min-width: 769px) {
+            #gameContainer {
+                width: 900px;
+                height: 700px;
+            }
+            
+            #gameCanvas {
+                width: 900px;
+                height: 700px;
+            }
+            
+            .ui-overlay {
+                font-size: 24px;
+            }
+            
+            .game-title {
+                font-size: 42px;
+                margin-bottom: 30px;
+            }
+            
+            button {
+                padding: 15px 30px;
+                font-size: 18px;
+                margin: 10px;
+            }
+            
+            input {
+                padding: 12px;
+                font-size: 16px;
+                width: 200px;
+                margin: 8px;
+            }
+            
+            #rankingSection {
+                flex-direction: row;
+                gap: 30px;
+            }
+            
+            #score {
+                font-size: 32px;
+                top: 20px;
+                left: 20px;
+            }
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            body {
+                margin: 0;
+                padding: 0;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                align-items: stretch;
+                justify-content: stretch;
+            }
+            
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                border-radius: 0;
+                border: none;
+                max-width: 100vw;
+                max-height: 100vh;
+                position: relative;
+            }
+            
+            #gameCanvas {
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                max-width: 100vw;
+                max-height: 100vh;
+                display: block;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            
+            .ui-overlay {
+                font-size: 18px;
+                padding: 20px 15px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                max-width: 100vw;
+                max-height: 100vh;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .ui-overlay::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .game-title {
+                font-size: clamp(24px, 6vw, 32px);
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            
+            button {
+                padding: 16px 24px;
+                font-size: 16px;
+                margin: 8px 5px;
+                min-height: 48px;
+                border-radius: 8px;
+                min-width: 120px;
+                width: auto;
+            }
+            
+            input, textarea {
+                padding: 16px;
+                font-size: 16px;
+                width: calc(100% - 10px);
+                max-width: 280px;
+                margin: 10px 0;
+                border-radius: 8px;
+                border: 2px solid #ccc;
+            }
+            
+            #rankingSection {
+                flex-direction: column;
+                gap: 20px;
+                width: 100%;
+                align-items: center;
+                max-width: 100%;
+            }
+            
+            #rankingList, #rankingControls {
+                width: calc(100% - 30px);
+                max-width: 350px;
+                margin: 0 auto;
+            }
+            
+            #score {
+                font-size: clamp(20px, 5vw, 28px);
+                position: fixed;
+                top: env(safe-area-inset-top, 15px);
+                left: 15px;
+                z-index: 1000;
+                max-width: calc(100vw - 30px);
+            }
+            
+            #connectionStatus {
+                position: fixed;
+                top: env(safe-area-inset-top, 15px);
+                right: 15px;
+                font-size: 11px;
+                padding: 4px 8px;
+                z-index: 1000;
+                max-width: 120px;
+            }
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            -webkit-appearance: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        button.warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+
+        #rankingSection {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #rankingList, #rankingControls {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 8px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .rank-item:hover {
+            background: rgba(255,215,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .rank-item.top3 {
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+            padding: 15px 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            color: #333;
+            border: none;
+            box-shadow: 0 4px 8px rgba(255,215,0,0.3);
+        }
+
+        #score {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px);
+        }
+
+        input[type="text"], input[type="password"], input[type="date"], textarea {
+            border: 2px solid #ddd;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76,175,80,0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        #startButtonImage {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            max-width: 200px;
+            margin: 20px;
+        }
+
+        #startButtonImage:hover {
+            transform: scale(1.1);
+        }
+
+        .game-title {
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.8);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #connectionStatus {
+            position: absolute;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+
+        .online {
+            background: rgba(76,175,80,0.9);
+            color: white;
+        }
+
+        .offline {
+            background: rgba(244,67,54,0.9);
+            color: white;
+        }
+
+        .loading {
+            background: rgba(255,152,0,0.9);
+            color: white;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 14px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(244,67,54,0.1);
+            border-radius: 5px;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            font-size: 14px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(76,175,80,0.1);
+            border-radius: 5px;
+        }
+
+        /* 관리자 모달 */
+        .admin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .admin-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #333;
+        }
+
+        .backup-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0,0,0,0.05);
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+
+        /* 공지사항 모달 */
+        .notice-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .notice-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .notice-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .notice-body {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+
+        .notice-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .notice-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 관리자 공지사항 관리 */
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .admin-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .admin-tab.active {
+            border-bottom-color: #4CAF50;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .admin-tab-content {
+            display: none;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        .notice-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .notice-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .notice-item.expired {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
+        .notice-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .notice-item-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .notice-item-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        /* 방문자 카운터 */
+        .visitor-counter {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+
+        .visitor-counter.game-playing {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* iOS 스타일 적용 */
+        @supports (-webkit-touch-callout: none) {
+            input, textarea {
+                -webkit-appearance: none;
+                border-radius: 10px;
+            }
+            
+            button {
+                -webkit-appearance: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="900" height="700"></canvas>
+        
+        <div id="connectionStatus" class="loading">연결 중...</div>
+        <div id="score">점수: 0</div>
+        
+        <!-- 시작 화면 -->
+        <div id="startScreen" class="ui-overlay">
+            <h1 class="game-title">Milders Flappy Martin</h1>
+            <p>탭하거나 스페이스바로 점프하세요!</p>
+            <img id="startButtonImage" src="startbutton.png" alt="게임 시작" onclick="startGame()">
+            
+            <div id="rankingSection">
+                <div id="rankingList">
+                    <h3>TOP 3 랭킹</h3>
+                    <div id="top3Rankings">로딩 중...</div>
+                </div>
+                
+                <div id="rankingControls">
+                    <h3>내 순위 확인</h3>
+                    <input type="text" id="checkNickname" placeholder="닉네임" maxlength="20" autocomplete="off">
+                    <input type="password" id="checkPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                    <br>
+                    <button class="secondary" onclick="checkMyRanking()">내 순위 보기</button>
+                    <div id="myRankDisplay"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 게임오버 화면 -->
+        <div id="gameOverScreen" class="ui-overlay hidden">
+            <img src="gameover.png" alt="게임 오버" style="max-width: 250px; margin: 20px;">
+            <p id="finalScore">최종 점수: 0</p>
+            <div id="nameInputSection" class="hidden">
+                <p>축하합니다! 상위 20위 진입!</p>
+                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="20" autocomplete="off">
+                <input type="password" id="playerPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                <p style="font-size: 12px; color: #ccc;">* 개인확인번호는 6자리 숫자로 입력하세요</p>
+                <br>
+                <button onclick="submitScore()">랭킹 등록</button>
+                <div id="submitMessage"></div>
+            </div>
+            <button onclick="restartGame()">다시 시작</button>
+            <button onclick="showStartScreen()">메인 메뉴</button>
+        </div>
+
+        <!-- 관리자 모달 -->
+        <div id="adminModal" class="admin-modal hidden">
+            <div class="admin-content">
+                <h2>관리자 모드</h2>
+                
+                <div class="admin-tabs">
+                    <div class="admin-tab active" onclick="switchAdminTab('ranking')">랭킹 관리</div>
+                    <div class="admin-tab" onclick="switchAdminTab('notice')">공지사항 관리</div>
+                </div>
+                
+                <!-- 랭킹 관리 탭 -->
+                <div id="ranking-tab" class="admin-tab-content active">
+                    <p>관리자 권한으로 로그인되었습니다.</p>
+                    <br>
+                    <button class="danger" onclick="resetRankings()">랭킹 초기화</button>
+                    <button class="warning" onclick="viewBackupData()">백업 기록 보기</button>
+                    <div id="adminMessage"></div>
+                    <div id="backupDisplay"></div>
+                </div>
+                
+                <!-- 공지사항 관리 탭 -->
+                <div id="notice-tab" class="admin-tab-content">
+                    <h3>새 공지사항 작성</h3>
+                    <div class="notice-form">
+                        <input type="text" id="noticeTitle" placeholder="공지사항 제목" maxlength="100">
+                        <textarea id="noticeContent" placeholder="공지사항 내용" rows="5" maxlength="1000"></textarea>
+                        <input type="date" id="noticeExpireDate" placeholder="공지 게시 마감 기간" title="만료일 (선택사항)">
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="saveNotice()">공지사항 저장</button>
+                            <button class="secondary" onclick="clearNoticeForm()">초기화</button>
+                        </div>
+                        <div id="noticeMessage"></div>
+                    </div>
+                    
+                    <hr style="margin: 30px 0;">
+                    
+                    <h3>기존 공지사항 관리</h3>
+                    <div id="noticeList">로딩 중...</div>
+                </div>
+                
+                <br>
+                <button class="secondary" onclick="closeAdminModal()">닫기</button>
+            </div>
+        </div>
+
+        <!-- 공지사항 표시 모달 -->
+        <div id="noticeModal" class="notice-modal hidden">
+            <div class="notice-content">
+                <div class="notice-title" id="noticeModalTitle"></div>
+                <div class="notice-body" id="noticeModalContent"></div>
+                <div class="notice-actions">
+                    <div class="notice-checkbox">
+                        <input type="checkbox" id="dontShowToday">
+                        <label for="dontShowToday">오늘 하루 보지 않기</label>
+                    </div>
+                    <button onclick="closeNoticeModal()">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 방문자 카운터 -->
+    <div class="visitor-counter" id="visitorCounter">
+        <span id="visitorCount">방문자: 로딩중...</span>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc, updateDoc, increment, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHUAQuZ-JeNmpeDfdbo5kPwW7v2emH8bg",
+            authDomain: "milders-flappy-martin.firebaseapp.com",
+            projectId: "milders-flappy-martin",
+            storageBucket: "milders-flappy-martin.firebasestorage.app",
+            messagingSenderId: "505347834080",
+            appId: "1:505347834080:web:c10bcf079e1681ffd19085"
+        };
+
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            window.firebaseDB = db;
+            window.firestoreModules = { collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc, updateDoc, increment, setDoc, getDoc };
+            console.log("Firebase 연결 성공!");
+        } catch (error) {
+            console.error("Firebase 연결 실패:", error);
+            window.firebaseDB = null;
+        }
+    </script>
+
+<script>
+        // 디바이스별 게임 설정 (모바일 점프력 증가)
+        const DEVICE_CONFIGS = {
+            mobile: {
+                gameSpeed: 1.9,
+                gravity: 0.22,
+                jumpPower: -5.2,  // 기존 -4.5에서 증가
+                obstacleInterval: 180,
+                birdSize: 55,
+                maxVelocity: 7,
+                minVelocity: -7,
+                speedIncrease: 0.15,
+                obstacleVariation: 30,  // 장애물 간격 랜덤 범위
+                gapVariation: 25,       // 위아래 간격 랜덤 범위
+                firstObstacleDelay: 90  // 첫 장애물 딜레이 감소
+            },
+            desktop: {
+                gameSpeed: 2.9,
+                gravity: 0.45,
+                jumpPower: -7.5,
+                obstacleInterval: 120,
+                birdSize: 50,
+                maxVelocity: 11,
+                minVelocity: -11,
+                speedIncrease: 0.19,
+                obstacleVariation: 25,  // 장애물 간격 랜덤 범위
+                gapVariation: 20,       // 위아래 간격 랜덤 범위
+                firstObstacleDelay: 60  // 첫 장애물 딜레이 감소
+            }
+        };
+
+        // 게임 기본 설정
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = 'start';
+        let score = 0;
+        let gameSpeed = 2.9;
+        let difficultyLevel = 1;
+        let currentNoticeIndex = 0;
+        let pendingNotices = [];
+        let isFirstObstacle = true;  // 첫 장애물 추적
+        
+        // 디바이스 감지
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        let currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+        
+        // 모바일 뷰포트 설정
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        function setupCanvas() {
+            if (isMobile) {
+                setVH();
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                canvas.style.touchAction = 'manipulation';
+            } else {
+                canvas.width = 900;
+                canvas.height = 700;
+            }
+        }
+        
+        setupCanvas();
+        
+        // 게임 물리 설정
+        let GRAVITY = currentConfig.gravity;
+        let JUMP_POWER = currentConfig.jumpPower;
+        let MAX_VELOCITY = currentConfig.maxVelocity;
+        let MIN_VELOCITY = currentConfig.minVelocity;
+        
+        // 연결 상태 업데이트
+        function updateConnectionStatus(status, text) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = status;
+            statusEl.textContent = text;
+        }
+        
+        // 암호화 함수
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString().slice(0, 6);
+        }
+        
+        // 방문자 수 관리
+        async function updateVisitorCount() {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const today = new Date().toDateString();
+                const { doc, setDoc, getDoc, updateDoc, increment } = window.firestoreModules;
+                
+                // 총 방문자 수 업데이트
+                const totalVisitorRef = doc(window.firebaseDB, 'visitor_stats', 'total');
+                try {
+                    await updateDoc(totalVisitorRef, {
+                        count: increment(1),
+                        lastUpdate: Date.now()
+                    });
+                } catch (error) {
+                    // 문서가 없으면 생성
+                    await setDoc(totalVisitorRef, {
+                        count: 1,
+                        lastUpdate: Date.now()
+                    });
+                }
+                
+                // 오늘 방문자 수 업데이트
+                const todayVisitorRef = doc(window.firebaseDB, 'visitor_stats', `daily_${today.replace(/\s/g, '_')}`);
+                try {
+                    await updateDoc(todayVisitorRef, {
+                        count: increment(1),
+                        date: today,
+                        lastUpdate: Date.now()
+                    });
+                } catch (error) {
+                    // 문서가 없으면 생성
+                    await setDoc(todayVisitorRef, {
+                        count: 1,
+                        date: today,
+                        lastUpdate: Date.now()
+                    });
+                }
+                
+                loadVisitorCount();
+                
+            } catch (error) {
+                console.error('방문자 수 업데이트 오류:', error);
+                document.getElementById('visitorCount').textContent = '방문자: 집계 오류';
+            }
+        }
+        
+        async function loadVisitorCount() {
+            if (!window.firebaseDB) {
+                document.getElementById('visitorCount').textContent = '방문자: 집계 불가';
+                return;
+            }
+            
+            try {
+                const today = new Date().toDateString();
+                const { doc, getDoc } = window.firestoreModules;
+                
+                // 총 방문자 수 조회
+                const totalVisitorRef = doc(window.firebaseDB, 'visitor_stats', 'total');
+                const totalDoc = await getDoc(totalVisitorRef);
+                const totalCount = totalDoc.exists() ? (totalDoc.data().count || 0) : 0;
+                
+                // 오늘 방문자 수 조회
+                const todayVisitorRef = doc(window.firebaseDB, 'visitor_stats', `daily_${today.replace(/\s/g, '_')}`);
+                const todayDoc = await getDoc(todayVisitorRef);
+                const todayCount = todayDoc.exists() ? (todayDoc.data().count || 0) : 0;
+                
+                document.getElementById('visitorCount').textContent = `총 방문자: ${totalCount} | 오늘: ${todayCount}`;
+                
+            } catch (error) {
+                console.error('방문자 수 로드 오류:', error);
+                document.getElementById('visitorCount').textContent = '방문자: 집계 오류';
+            }
+        }
+        
+        // 공지사항 관리
+        async function loadNotices() {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { collection, query, orderBy, onSnapshot, where } = window.firestoreModules;
+                const q = query(
+                    collection(window.firebaseDB,'notices'),
+                    where('isActive', '==', true),
+                    orderBy('createdAt', 'asc')
+                );
+                
+                onSnapshot(q, (snapshot) => {
+                    const notices = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const now = Date.now();
+                        
+                        // 만료일 확인
+                        if (data.expireDate && new Date(data.expireDate).getTime() < now) {
+                            // 만료된 공지사항 비활성화
+                            deactivateNotice(doc.id);
+                            return;
+                        }
+                        
+                        notices.push({ id: doc.id, ...data });
+                    });
+                    
+                    checkAndShowNotices(notices);
+                });
+                
+            } catch (error) {
+                console.error('공지사항 로드 오류:', error);
+            }
+        }
+        
+        function checkAndShowNotices(notices) {
+            if (notices.length === 0) return;
+            
+            const today = new Date().toDateString();
+            const hiddenNotices = JSON.parse(localStorage.getItem(`hiddenNotices_${today}`) || '[]');
+            
+            // 오늘 숨긴 공지사항 제외
+            const visibleNotices = notices.filter(notice => !hiddenNotices.includes(notice.id));
+            
+            if (visibleNotices.length > 0) {
+                pendingNotices = visibleNotices;
+                currentNoticeIndex = 0;
+                showNextNotice();
+            }
+        }
+        
+        function showNextNotice() {
+            if (currentNoticeIndex >= pendingNotices.length) return;
+            
+            const notice = pendingNotices[currentNoticeIndex];
+            document.getElementById('noticeModalTitle').textContent = notice.title;
+            document.getElementById('noticeModalContent').textContent = notice.content;
+            document.getElementById('dontShowToday').checked = false;
+            document.getElementById('noticeModal').classList.remove('hidden');
+        }
+        
+        function closeNoticeModal() {
+            const dontShow = document.getElementById('dontShowToday').checked;
+            
+            if (dontShow) {
+                const today = new Date().toDateString();
+                const hiddenNotices = JSON.parse(localStorage.getItem(`hiddenNotices_${today}`) || '[]');
+                const currentNotice = pendingNotices[currentNoticeIndex];
+                
+                if (!hiddenNotices.includes(currentNotice.id)) {
+                    hiddenNotices.push(currentNotice.id);
+                    localStorage.setItem(`hiddenNotices_${today}`, JSON.stringify(hiddenNotices));
+                }
+            }
+            
+            document.getElementById('noticeModal').classList.add('hidden');
+            currentNoticeIndex++;
+            
+            // 다음 공지사항이 있으면 잠시 후 표시
+            if (currentNoticeIndex < pendingNotices.length) {
+                setTimeout(showNextNotice, 1000);
+            }
+        }
+        
+        // 관리자 공지사항 관리
+        function switchAdminTab(tabName) {
+            // 탭 버튼 활성화
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.admin-tab:nth-child(${tabName === 'ranking' ? 1 : 2})`).classList.add('active');
+            
+            // 탭 내용 표시
+            document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'notice') {
+                loadAdminNotices();
+            }
+        }
+        
+        // 공지사항은 현재 보안 규칙으로 인해 Firebase 콘솔에서만 작성 가능
+        // 아래 함수들은 향후 Firebase Authentication 연동 시 사용
+        function saveNotice() {
+            const messageEl = document.getElementById('noticeMessage');
+            messageEl.innerHTML = '<div class="error-message">현재 보안 규칙으로 인해 공지사항 작성이 제한됩니다.<br>Firebase 콘솔에서 직접 작성해주세요.</div>';
+        }
+        
+        function clearNoticeForm() {
+            document.getElementById('noticeTitle').value = '';
+            document.getElementById('noticeContent').value = '';
+            document.getElementById('noticeExpireDate').value = '';
+            document.getElementById('noticeMessage').innerHTML = '';
+        }
+        
+        async function loadAdminNotices() {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { collection, query, orderBy, getDocs } = window.firestoreModules;
+                const q = query(collection(window.firebaseDB, 'notices'), orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                let html = '';
+                const now = Date.now();
+                
+                if (snapshot.empty) {
+                    html = '<p>등록된 공지사항이 없습니다.</p>';
+                } else {
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const isExpired = data.expireDate && new Date(data.expireDate).getTime() < now;
+                        const statusText = data.isActive ? (isExpired ? '만료됨' : '활성') : '비활성';
+                        const statusColor = data.isActive ? (isExpired ? '#ff9800' : '#4CAF50') : '#f44336';
+                        
+                        html += `
+                            <div class="notice-item ${isExpired ? 'expired' : ''}">
+                                <div class="notice-item-title">${data.title}</div>
+                                <div class="notice-item-meta">
+                                    작성일: ${new Date(data.createdAt).toLocaleDateString('ko-KR')} | 
+                                    상태: <span style="color: ${statusColor}">${statusText}</span>
+                                    ${data.expireDate ? ` | 만료일: ${new Date(data.expireDate).toLocaleDateString('ko-KR')}` : ''}
+                                </div>
+                                <div style="margin-top: 10px; color: #666; font-size: 14px;">${data.content}</div>
+                                <div class="notice-item-actions">
+                                    <span style="font-size: 12px; color: #999;">Firebase 콘솔에서 관리</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('noticeList').innerHTML = html;
+                
+            } catch (error) {
+                console.error('관리자 공지사항 로드 오류:', error);
+                document.getElementById('noticeList').innerHTML = '<p>공지사항 로드 중 오류가 발생했습니다: ' + error.message + '</p>';
+            }
+        }
+        
+        async function deactivateNotice(noticeId) {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { doc, updateDoc } = window.firestoreModules;
+                await updateDoc(doc(window.firebaseDB, 'notices', noticeId), {
+                    isActive: false
+                });
+                loadAdminNotices();
+            } catch (error) {
+                console.error('공지사항 비활성화 오류:', error);
+            }
+        }
+        
+        // 개선된 랭킹 초기화 (상위 10위만 백업)
+        async function resetRankings() {
+            if (!window.firebaseDB) {
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            if (!confirm('정말로 랭킹을 초기화하시겠습니까?\n상위 10위 기록이 백업됩니다.')) {
+                return;
+            }
+            
+            try {
+                document.getElementById('adminMessage').innerHTML = '<div class="loading">랭킹 초기화 중...</div>';
+                
+                const { collection, query, orderBy, limit, getDocs, setDoc, deleteDoc, doc } = window.firestoreModules;
+                
+                // 상위 10위만 백업
+                const top10Query = query(
+                    collection(window.firebaseDB, 'rankings'), 
+                    orderBy('score', 'desc'), 
+                    limit(10)
+                );
+                const snapshot = await getDocs(top10Query);
+                
+                const resetDate = new Date().toLocaleString('ko-KR');
+                const resetNumber = Date.now();
+                
+                // 백업 데이터 구성 (순위 포함)
+                const backupRankings = [];
+                snapshot.forEach((docSnapshot, index) => {
+                    const data = docSnapshot.data();
+                    backupRankings.push({
+                        rank: index + 1,
+                        nickname: data.nickname,
+                        score: data.score,
+                        date: data.date,
+                        device: data.device,
+                        timestamp: data.timestamp
+                    });
+                });
+                
+                // 단일 문서로 백업 저장
+                const backupDoc = {
+                    resetDate: resetDate,
+                    resetNumber: resetNumber,
+                    rankings: backupRankings,
+                    totalBackedUp: backupRankings.length
+                };
+                
+                await setDoc(doc(window.firebaseDB, 'backup_rankings', `reset_${resetNumber}`), backupDoc);
+                
+                // 모든 랭킹 삭제
+                const allRankingsQuery = query(collection(window.firebaseDB, 'rankings'));
+                const allSnapshot = await getDocs(allRankingsQuery);
+                const deletePromises = [];
+                allSnapshot.forEach((docSnapshot) => {
+                    deletePromises.push(deleteDoc(doc(window.firebaseDB, 'rankings', docSnapshot.id)));
+                });
+                await Promise.all(deletePromises);
+                
+                document.getElementById('adminMessage').innerHTML = `<div class="success-message">랭킹이 초기화되었습니다!<br>상위 ${backupRankings.length}위 백업 완료<br>초기화 날짜: ${resetDate}</div>`;
+                loadTop3Rankings();
+                
+            } catch (error) {
+                console.error('랭킹 초기화 오류:', error);
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">초기화 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+
+async function viewBackupData() {
+            if (!window.firebaseDB) {
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            try {
+                const { collection, query, orderBy, getDocs } = window.firestoreModules;
+                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('resetNumber', 'desc'));
+                const snapshot = await getDocs(backupQuery);
+                
+                let html = '<h3>백업된 랭킹 기록</h3>';
+                
+                if (snapshot.empty) {
+                    html += '<p>백업된 기록이 없습니다.</p>';
+                } else {
+                    snapshot.forEach((doc, index) => {
+                        const data = doc.data();
+                        const resetDate = data.resetDate || '날짜 정보 없음';
+                        
+                        html += `<h4 style="margin-top: 20px; color: #2196F3;">${index + 1}번째 초기화 (${resetDate})</h4>`;
+                        html += `<p style="font-size: 12px; color: #666;">총 ${data.totalBackedUp || 0}명 백업</p>`;
+                        
+                        if (data.rankings && data.rankings.length > 0) {
+                            data.rankings.forEach((ranking) => {
+                                const deviceIcon = ranking.device === 'mobile' ? '📱' : '💻';
+                                html += `<div class="backup-item">
+                                    ${ranking.rank}위. ${ranking.nickname} ${deviceIcon} - ${ranking.score}점
+                                    <br><small>기록일: ${ranking.date || '정보 없음'}</small>
+                                </div>`;
+                            });
+                        }
+                    });
+                }
+                
+                document.getElementById('backupDisplay').innerHTML = html;
+                
+            } catch (error) {
+                console.error('백업 조회 오류:', error);
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">백업 조회 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+        
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+            document.getElementById('adminMessage').innerHTML = '';
+            document.getElementById('backupDisplay').innerHTML = '';
+        }
+        
+        // 이미지 관리
+        const gameImages = {
+            background: null,
+            character: null,
+            blockTop: null,
+            blockBottom: null,
+            ground: null,
+            loaded: {
+                background: false,
+                character: false,
+                blockTop: false,
+                blockBottom: false,
+                ground: false
+            }
+        };
+        
+        const GROUND_HEIGHT = isMobile ? 60 : 80;
+        
+        function loadGameImage(key, filename) {
+            const img = new Image();
+            img.onload = function() {
+                gameImages[key] = img;
+                gameImages.loaded[key] = true;
+                console.log(`${filename} 로딩 성공`);
+            };
+            img.onerror = function() {
+                console.log(`${filename} 로딩 실패 - 기본 그래픽 사용`);
+                gameImages.loaded[key] = false;
+            };
+            img.src = filename;
+        }
+        
+        loadGameImage('background', 'background.png');
+        loadGameImage('character', 'martin.png');
+        loadGameImage('blockTop', 'blocktop.png');
+        loadGameImage('blockBottom', 'blockbottom.png');
+        loadGameImage('ground', 'ground.png');
+        
+        // 캐릭터 설정
+        const bird = {
+            x: isMobile ? canvas.width * 0.15 : 120,
+            y: canvas.height / 2,
+            width: currentConfig.birdSize,
+            height: currentConfig.birdSize,
+            velocity: 0,
+            rotation: 0
+        };
+        
+        let obstacles = [];
+        let obstacleTimer = 0;
+        let obstacleInterval = currentConfig.obstacleInterval;
+        let backgroundScroll = 0;
+        
+        // 성능 최적화
+        const targetFPS = isMobile ? 45 : 60;
+        let lastTime = 0;
+        const frameDelay = 1000 / targetFPS;
+        
+        // 게임 그리기 함수들
+        function drawBird() {
+            ctx.save();
+            ctx.translate(bird.x + bird.width/2, bird.y + bird.height/2);
+            ctx.rotate(bird.rotation);
+            
+            if (gameImages.loaded.character && gameImages.character) {
+                ctx.drawImage(
+                    gameImages.character,
+                    -bird.width/2, -bird.height/2,
+                    bird.width, bird.height
+                );
+            } else {
+                ctx.fillStyle = '#FF6B35';
+                ctx.beginPath();
+                ctx.arc(0, 0, bird.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(-8, -8, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(-8, -8, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+        
+        function drawEnvironment() {
+            if (gameImages.loaded.background && gameImages.background) {
+                const bgMove = backgroundScroll * (isMobile ? 0.15 : 0.3);
+                const bgOffset = bgMove % canvas.width;
+                const bgX1 = -bgOffset;
+                const bgX2 = bgX1 + canvas.width;
+                
+                ctx.drawImage(gameImages.background, bgX1, 0, canvas.width, canvas.height);
+                ctx.drawImage(gameImages.background, bgX2, 0, canvas.width, canvas.height);
+                
+            } else {
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height - GROUND_HEIGHT);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(1, '#98FB98');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height - GROUND_HEIGHT);
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                const cloudMove = backgroundScroll * 0.05;
+                const cloudCount = isMobile ? 4 : 8;
+                for(let i = 0; i < cloudCount; i++) {
+                    const cloudX = (cloudMove + i * 150) % (canvas.width + 100) - 50;
+                    drawCloud(cloudX, 60 + (i % 3) * 50);
+                }
+            }
+            
+            const groundY = canvas.height - GROUND_HEIGHT;
+            
+            if (gameImages.loaded.ground && gameImages.ground) {
+                const groundMove = backgroundScroll * (isMobile ? 0.15 : 0.3);
+                const groundOffset = groundMove % canvas.width;
+                const groundX1 = -groundOffset;
+                const groundX2 = groundX1 + canvas.width;
+                
+                ctx.drawImage(gameImages.ground, groundX1, groundY, canvas.width, GROUND_HEIGHT);
+                ctx.drawImage(gameImages.ground, groundX2, groundY, canvas.width, GROUND_HEIGHT);
+            } else {
+                ctx.fillStyle = '#90EE90';
+                ctx.fillRect(0, groundY, canvas.width, GROUND_HEIGHT);
+                
+                ctx.strokeStyle = '#228B22';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, groundY);
+                ctx.lineTo(canvas.width, groundY);
+                ctx.stroke();
+            }
+        }
+        
+        function drawCloud(x, y) {
+            ctx.beginPath();
+            ctx.arc(x + 25, y - 15, 20, 0, Math.PI * 2);
+            ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
+            ctx.arc(x + 50, y, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // 개선된 장애물 생성 (랜덤 간격과 위아래 간격)
+        function createObstacle() {
+            const baseGap = isMobile ? 160 : 180;
+            const difficultyGap = Math.max(120, baseGap - (difficultyLevel * 4));
+            
+            // 랜덤 위아래 간격 적용
+            const gapVariation = currentConfig.gapVariation;
+            const randomGapAdjustment = (Math.random() - 0.5) * gapVariation;
+            const gap = Math.max(100, difficultyGap + randomGapAdjustment);
+            
+            const minHeight = 60;
+            const maxHeight = canvas.height - gap - GROUND_HEIGHT - 60;
+            const topHeight = minHeight + Math.random() * (maxHeight - minHeight);
+            
+            obstacles.push({
+                x: canvas.width,
+                topHeight: topHeight,
+                bottomY: topHeight + gap,
+                bottomHeight: canvas.height - (topHeight + gap) - GROUND_HEIGHT,
+                width: isMobile ? 40 : 50,
+                passed: false,
+                gap: gap  // 디버깅용
+            });
+        }
+        
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                if (gameImages.loaded.blockTop && gameImages.blockTop) {
+                    ctx.drawImage(
+                        gameImages.blockTop,
+                        obstacle.x, 0, 
+                        obstacle.width, obstacle.topHeight
+                    );
+                } else {
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(obstacle.x, 0, obstacle.width, obstacle.topHeight);
+                    ctx.strokeStyle = '#006400';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obstacle.x, 0, obstacle.width, obstacle.topHeight);
+                }
+                
+                if (gameImages.loaded.blockBottom && gameImages.blockBottom) {
+                    ctx.drawImage(
+                        gameImages.blockBottom,
+                        obstacle.x, obstacle.bottomY,
+                        obstacle.width, obstacle.bottomHeight
+                    );
+                } else {
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(obstacle.x, obstacle.bottomY, obstacle.width, obstacle.bottomHeight);
+                    ctx.strokeStyle = '#006400';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obstacle.x, obstacle.bottomY, obstacle.width, obstacle.bottomHeight);
+                }
+            });
+        }
+        
+        function updateBird() {
+            bird.velocity += GRAVITY;
+            bird.velocity = Math.max(MIN_VELOCITY, Math.min(MAX_VELOCITY, bird.velocity));
+            bird.y += bird.velocity;
+            bird.rotation = Math.min(bird.velocity * 0.06, Math.PI / 4);
+            
+            if (bird.y <= 0) {
+                bird.y = 0;
+                bird.velocity = 0;
+            }
+            
+            if (bird.y + bird.height >= canvas.height - GROUND_HEIGHT) {
+                gameOver();
+            }
+        }
+        
+        // 개선된 장애물 업데이트 (랜덤 간격)
+        function updateObstacles() {
+            obstacles.forEach(obstacle => {
+                obstacle.x -= gameSpeed;
+                
+                if (!obstacle.passed && obstacle.x + obstacle.width < bird.x) {
+                    obstacle.passed = true;
+                    score++;
+                    updateScore();
+                    
+                    if (score % 5 === 0) {
+                        difficultyLevel++;
+                        gameSpeed += currentConfig.speedIncrease;
+                        obstacleInterval = Math.max(isMobile ? 100 : 60, obstacleInterval - 4);
+                    }
+                }
+            });
+            
+            obstacles = obstacles.filter(obstacle => obstacle.x > -obstacle.width);
+            
+            obstacleTimer++;
+            
+            // 첫 장애물은 빨리, 이후는 랜덤 간격
+            let currentInterval;
+            if (isFirstObstacle) {
+                currentInterval = currentConfig.firstObstacleDelay;
+            } else {
+                const variation = currentConfig.obstacleVariation;
+                const randomAdjustment = (Math.random() - 0.5) * variation;
+                currentInterval = Math.max(60, obstacleInterval + randomAdjustment);
+            }
+            
+            if (obstacleTimer >= currentInterval) {
+                createObstacle();
+                obstacleTimer = 0;
+                isFirstObstacle = false;
+            }
+        }
+        
+        function checkCollisions() {
+            const birdLeft = bird.x + 3;
+            const birdRight = bird.x + bird.width - 3;
+            const birdTop = bird.y + 3;
+            const birdBottom = bird.y + bird.height - 3;
+            
+            obstacles.forEach(obstacle => {
+                if (birdRight > obstacle.x && birdLeft < obstacle.x + obstacle.width) {
+                    if (birdTop < obstacle.topHeight || birdBottom > obstacle.bottomY) {
+                        gameOver();
+                    }
+                }
+            });
+        }
+        
+        function jump() {
+            if (gameState === 'playing') {
+                bird.velocity = JUMP_POWER;
+            }
+        }
+        
+        function updateScore() {
+            document.getElementById('score').textContent = `점수: ${score}`;
+        }
+        
+        // 방문자 카운터 표시/숨기기 함수
+        function updateVisitorCounterVisibility() {
+            const visitorCounter = document.getElementById('visitorCounter');
+            if (gameState === 'playing') {
+                visitorCounter.classList.add('game-playing');
+            } else {
+                visitorCounter.classList.remove('game-playing');
+            }
+        }
+        
+        function gameLoop(currentTime) {
+            if (currentTime - lastTime >= frameDelay) {
+                drawEnvironment();
+                
+                if (gameState === 'playing') {
+                    backgroundScroll += gameSpeed * 0.3;
+                    updateBird();
+                    updateObstacles();
+                    checkCollisions();
+                    drawObstacles();
+                    drawBird();
+                }
+                
+                lastTime = currentTime;
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function startGame() {
+            console.log(`게임 시작! (${isMobile ? '모바일' : '데스크탑'} 모드)`);
+            gameState = 'playing';
+            score = 0;
+            difficultyLevel = 1;
+            isFirstObstacle = true;  // 첫 장애물 플래그 리셋
+            
+            currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+            gameSpeed = currentConfig.gameSpeed;
+            obstacleInterval = currentConfig.obstacleInterval;
+            GRAVITY = currentConfig.gravity;
+            JUMP_POWER = currentConfig.jumpPower;
+            MAX_VELOCITY = currentConfig.maxVelocity;
+            MIN_VELOCITY = currentConfig.minVelocity;
+            
+            bird.x = isMobile ? canvas.width * 0.15 : 120;
+            bird.y = canvas.height / 2;
+            bird.width = currentConfig.birdSize;
+            bird.height = currentConfig.birdSize;
+            bird.velocity = 0;
+            bird.rotation = 0;
+            
+            obstacles = [];
+            obstacleTimer = 0;
+            backgroundScroll = 0;
+            
+            updateScore();
+            updateVisitorCounterVisibility();
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+        }
+        
+        async function gameOver() {
+            gameState = 'gameOver';
+            updateVisitorCounterVisibility();
+            document.getElementById('finalScore').textContent = `최종 점수: ${score}`;
+            
+            const isTop20 = await checkTop20Eligibility(score);
+            
+            if (isTop20) {
+                document.getElementById('nameInputSection').classList.remove('hidden');
+            } else {
+                document.getElementById('nameInputSection').classList.add('hidden');
+            }
+            
+            // 입력 필드 초기화
+            clearGameOverInputs();
+            
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+        
+        function restartGame() {
+            startGame();
+        }
+        
+        function showStartScreen() {
+            gameState = 'start';
+            updateVisitorCounterVisibility();
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            
+            document.getElementById('checkNickname').value = '';
+            document.getElementById('checkPin').value = '';
+            document.getElementById('myRankDisplay').innerHTML = '';
+        }
+// Firebase 랭킹 함수들
+        async function submitScore() {
+            const nickname = document.getElementById('playerName').value.trim();
+            const pin = document.getElementById('playerPin').value.trim();
+            const messageEl = document.getElementById('submitMessage');
+            
+            if (!nickname) {
+                messageEl.innerHTML = '<div class="error-message">닉네임을 입력해주세요!</div>';
+                return;
+            }
+            
+            if (!pin || pin.length !== 6) {
+                messageEl.innerHTML = '<div class="error-message">개인확인번호는 6자리 숫자여야 합니다!</div>';
+                return;
+            }
+            
+            if (!window.firebaseDB) {
+                messageEl.innerHTML = '<div class="error-message">Firebase 연결이 필요합니다!</div>';
+                return;
+            }
+            
+            try {
+                messageEl.innerHTML = '<div class="loading">랭킹 등록 중...</div>';
+                
+                const { collection, addDoc } = window.firestoreModules;
+                const rankingData = {
+                    nickname: nickname,
+                    pin: simpleHash(pin),
+                    rawPin: pin,
+                    score: score,
+                    timestamp: Date.now(),
+                    date: new Date().toLocaleDateString('ko-KR'),
+                    device: isMobile ? 'mobile' : 'desktop'
+                };
+                
+                await addDoc(collection(window.firebaseDB, 'rankings'), rankingData);
+                
+                messageEl.innerHTML = '<div class="success-message">랭킹 등록 완료!</div>';
+                document.getElementById('nameInputSection').classList.add('hidden');
+                loadTop3Rankings();
+                
+                // 입력 필드 초기화
+                clearGameOverInputs();
+                
+            } catch (error) {
+                console.error('랭킹 등록 오류:', error);
+                messageEl.innerHTML = '<div class="error-message">등록 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+        
+        // 게임오버 입력 필드 초기화 함수
+        function clearGameOverInputs() {
+            document.getElementById('playerName').value = '';
+            document.getElementById('playerPin').value = '';
+            document.getElementById('submitMessage').innerHTML = '';
+        }
+        
+        async function loadTop3Rankings() {
+            if (!window.firebaseDB) {
+                document.getElementById('top3Rankings').innerHTML = 'Firebase 연결 필요';
+                return;
+            }
+            
+            try {
+                const { collection, query, orderBy, limit, onSnapshot } = window.firestoreModules;
+                const q = query(
+                    collection(window.firebaseDB, 'rankings'),
+                    orderBy('score', 'desc'),
+                    limit(3)
+                );
+                
+                onSnapshot(q, (snapshot) => {
+                    const rankings = [];
+                    snapshot.forEach((doc) => {
+                        rankings.push(doc.data());
+                    });
+                    displayTop3Rankings(rankings);
+                });
+                
+            } catch (error) {
+                console.error('랭킹 로드 오류:', error);
+                document.getElementById('top3Rankings').innerHTML = '로딩 실패: ' + error.message;
+            }
+        }
+        
+        function displayTop3Rankings(rankings) {
+            const container = document.getElementById('top3Rankings');
+            
+            if (rankings.length === 0) {
+                container.innerHTML = '<p>아직 기록이 없습니다</p>';
+                return;
+            }
+            
+            let html = '';
+            rankings.forEach((player, index) => {
+                const medal = ['🥇', '🥈', '🥉'][index];
+                const deviceIcon = player.device === 'mobile' ? '📱' : '💻';
+                html += `<div class="rank-item top3">
+                    <span>${medal} ${index + 1}위. ${player.nickname} ${deviceIcon}</span>
+                    <span>${player.score}점</span>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        async function checkMyRanking() {
+            const nickname = document.getElementById('checkNickname').value.trim();
+            const pin = document.getElementById('checkPin').value.trim();
+            const displayEl = document.getElementById('myRankDisplay');
+            
+            // 관리자 로그인 확인
+            if (nickname === 'mildersboss' && pin === '021502') {
+                document.getElementById('adminModal').classList.remove('hidden');
+                document.getElementById('checkNickname').value = '';
+                document.getElementById('checkPin').value = '';
+                return;
+            }
+            
+            if (!nickname || !pin) {
+                displayEl.innerHTML = '<div class="error-message">닉네임과 개인확인번호를 입력하세요</div>';
+                return;
+            }
+            
+            if (!window.firebaseDB) {
+                displayEl.innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            try {
+                displayEl.innerHTML = '<div class="loading">검색 중...</div>';
+                
+                const { collection, query, where, getDocs, orderBy } = window.firestoreModules;
+                
+                const q = query(
+                    collection(window.firebaseDB, 'rankings'),
+                    where('nickname', '==', nickname),
+                    where('rawPin', '==', pin)
+                );
+                
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    displayEl.innerHTML = '<div class="error-message">일치하는 기록이 없습니다</div>';
+                    return;
+                }
+                
+                const allRankingsQuery = query(
+                    collection(window.firebaseDB, 'rankings'),
+                    orderBy('score', 'desc')
+                );
+                
+                const allSnapshot = await getDocs(allRankingsQuery);
+                const allRankings = [];
+                allSnapshot.forEach((doc) => {
+                    allRankings.push(doc.data());
+                });
+                
+                const myRecords = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const rank = allRankings.findIndex(r => r.timestamp === data.timestamp) + 1;
+                    myRecords.push({ ...data, rank });
+                });
+                
+                myRecords.sort((a, b) => a.rank - b.rank);
+                const bestRecord = myRecords[0];
+                const deviceIcon = bestRecord.device === 'mobile' ? '📱' : '💻';
+                
+                displayEl.innerHTML = `
+                    <div class="success-message">
+                        최고 순위: ${bestRecord.rank}위 ${deviceIcon}<br>
+                        점수: ${bestRecord.score}점<br>
+                        날짜: ${bestRecord.date}
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('순위 확인 오류:', error);
+                displayEl.innerHTML = '<div class="error-message">검색 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+        
+        async function checkTop20Eligibility(newScore) {
+            if (!window.firebaseDB) return false;
+            
+            try {
+                const { collection, query, orderBy, limit, getDocs } = window.firestoreModules;
+                const q = query(
+                    collection(window.firebaseDB, 'rankings'),
+                    orderBy('score', 'desc'),
+                    limit(20)
+                );
+                
+                const snapshot = await getDocs(q);
+                const rankings = [];
+                snapshot.forEach((doc) => {
+                    rankings.push(doc.data());
+                });
+                
+                return rankings.length < 20 || newScore > rankings[rankings.length - 1].score;
+                
+            } catch (error) {
+                console.error('순위 확인 오류:', error);
+                return false;
+            }
+        }
+        
+        // 입력 제한 함수들
+        function setupPinValidation(elementId) {
+            const pinInput = document.getElementById(elementId);
+            
+            pinInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                if (e.target.value.length > 6) {
+                    e.target.value = e.target.value.slice(0, 6);
+                }
+            });
+            
+            pinInput.addEventListener('keydown', (e) => {
+                if (!/[0-9]/.test(e.key) && 
+                    !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        function setupNicknameValidation(elementId) {
+            const nicknameInput = document.getElementById(elementId);
+            
+            nicknameInput.addEventListener('input', (e) => {
+                let value = e.target.value;
+                
+                if (e.inputType === 'insertCompositionText' || e.isComposing) {
+                    return;
+                }
+                
+                value = value.replace(/[^가-힣a-zA-Z0-9]/g, '');
+                
+                if (value.length > 20) {
+                    value = value.slice(0, 20);
+                }
+                
+                e.target.value = value;
+            });
+            
+            nicknameInput.addEventListener('compositionend', (e) => {
+                let value = e.target.value;
+                value = value.replace(/[^가-힣a-zA-Z0-9]/g, '');
+                if (value.length > 20) {
+                    value = value.slice(0, 20);
+                }
+                e.target.value = value;
+            });
+        }
+        
+        // 이벤트 리스너
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                jump();
+            }
+        });
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            jump();
+        }
+        
+        canvas.addEventListener('click', handleTouchStart);
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+        
+        // Enter 키 이벤트들
+        document.getElementById('checkNickname').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('checkPin').focus();
+            }
+        });
+        
+        document.getElementById('checkPin').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkMyRanking();
+            }
+        });
+        
+        document.getElementById('playerName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('playerPin').focus();
+            }
+        });
+        
+        document.getElementById('playerPin').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitScore();
+            }
+        });
+        
+        // 입력 제한 초기화
+        setupPinValidation('checkPin');
+        setupPinValidation('playerPin');
+        setupNicknameValidation('checkNickname');
+        setupNicknameValidation('playerName');
+        
+        // 화면 크기 변경 감지
+        window.addEventListener('resize', () => {
+            setupCanvas();
+            currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+            GRAVITY = currentConfig.gravity;
+            JUMP_POWER = currentConfig.jumpPower;
+            MAX_VELOCITY = currentConfig.maxVelocity;
+            MIN_VELOCITY = currentConfig.minVelocity;
+        });
+        
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                setVH();
+                setupCanvas();
+            }, 100);
+        });
+        
+        // 초기화
+        console.log(`Milders Flappy Martin 준비 완료! (${isMobile ? '모바일' : '데스크탑'})`);
+        
+        setTimeout(() => {
+            if (window.firebaseDB) {
+                loadTop3Rankings();
+                updateConnectionStatus('online', isMobile ? '모바일 연결' : '데스크탑 연결');
+                loadNotices(); // 공지사항 로드
+                updateVisitorCount(); // 방문자 수 업데이트
+                loadVisitorCount(); // 방문자 수 표시
+            } else {
+                updateConnectionStatus('offline', 'Firebase 오류');
+                document.getElementById('top3Rankings').innerHTML = `
+                    <p style="color: #f44336;">Firebase 연결 오류</p>
+                    <p style="font-size: 12px;">새로고침 후 다시 시도해주세요</p>
+                `;
+            }
+        }, 1000);
+        
+        gameLoop();
+    </script>
+</body>
+</html>
