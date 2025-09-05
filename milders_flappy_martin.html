@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Milders Flappy Martin v3</title>
+    <title>Milders Flappy Martin</title>
     <style>
         * {
             margin: 0;
@@ -190,33 +190,6 @@
                 z-index: 1000;
                 max-width: 120px;
             }
-            
-            #startButtonImage {
-                max-width: 160px;
-                margin: 15px;
-            }
-            
-            #gameOverScreen {
-                justify-content: flex-start;
-                padding-top: 10vh;
-            }
-            
-            #gameOverScreen img {
-                max-width: 200px;
-                margin: 10px;
-            }
-            
-            #nameInputSection {
-                width: calc(100% - 30px);
-                max-width: 300px;
-                margin: 15px auto;
-            }
-            
-            #myRankResult {
-                width: calc(100% - 20px);
-                max-width: 280px;
-                margin: 10px auto;
-            }
         }
 
         #gameCanvas {
@@ -273,6 +246,14 @@
             background: linear-gradient(135deg, #2196F3, #1976D2);
         }
 
+        button.danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        button.warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+
         #rankingSection {
             display: flex;
             align-items: flex-start;
@@ -325,7 +306,7 @@
             backdrop-filter: blur(5px);
         }
 
-        input[type="text"], input[type="password"] {
+        input[type="text"], input[type="number"] {
             border: 2px solid #ddd;
             background: rgba(255,255,255,0.9);
             color: #333;
@@ -339,10 +320,22 @@
             box-shadow: 0 0 10px rgba(76,175,80,0.3);
         }
 
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
         #startButtonImage {
             cursor: pointer;
             transition: transform 0.3s ease;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            max-width: 200px;
+            margin: 20px;
         }
 
         #startButtonImage:hover {
@@ -400,14 +393,36 @@
             border-radius: 5px;
         }
 
-        #myRankResult {
-            background: rgba(255,255,255,0.95);
+        /* 관리자 모달 */
+        .admin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .admin-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
             color: #333;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            max-width: 320px;
-            backdrop-filter: blur(10px);
+        }
+
+        .backup-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0,0,0,0.05);
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
         }
 
         /* iOS 스타일 적용 */
@@ -432,7 +447,7 @@
         
         <!-- 시작 화면 -->
         <div id="startScreen" class="ui-overlay">
-            <h1 class="game-title">Milders Flappy Martin v3</h1>
+            <h1 class="game-title">Milders Flappy Martin</h1>
             <p>탭하거나 스페이스바로 점프하세요!</p>
             <img id="startButtonImage" src="startbutton.png" alt="게임 시작" onclick="startGame()">
             
@@ -444,8 +459,8 @@
                 
                 <div id="rankingControls">
                     <h3>🔍 내 순위 확인</h3>
-                    <input type="text" id="checkNickname" placeholder="닉네임" maxlength="10">
-                    <input type="password" id="checkPin" placeholder="개인확인번호" maxlength="6">
+                    <input type="text" id="checkNickname" placeholder="닉네임" maxlength="10" autocomplete="off">
+                    <input type="number" id="checkPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
                     <br>
                     <button class="secondary" onclick="checkMyRanking()">내 순위 보기</button>
                     <div id="myRankDisplay"></div>
@@ -459,8 +474,8 @@
             <p id="finalScore">최종 점수: 0</p>
             <div id="nameInputSection" class="hidden">
                 <p>🎉 축하합니다! 상위 20위 진입!</p>
-                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="10">
-                <input type="password" id="playerPin" placeholder="개인확인번호 (비공개)" maxlength="6">
+                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="10" autocomplete="off">
+                <input type="number" id="playerPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
                 <p style="font-size: 12px; color: #ccc;">* 개인확인번호는 6자리 숫자로 입력하세요</p>
                 <br>
                 <button onclick="submitScore()">랭킹 등록</button>
@@ -469,12 +484,26 @@
             <button onclick="restartGame()">다시 시작</button>
             <button onclick="showStartScreen()">메인 메뉴</button>
         </div>
+
+        <!-- 관리자 모달 -->
+        <div id="adminModal" class="admin-modal hidden">
+            <div class="admin-content">
+                <h2>🔧 관리자 모드</h2>
+                <p>관리자 권한으로 로그인되었습니다.</p>
+                <br>
+                <button class="danger" onclick="resetRankings()">📊 랭킹 초기화</button>
+                <button class="warning" onclick="viewBackupData()">📋 백업 기록 보기</button>
+                <button class="secondary" onclick="closeAdminModal()">닫기</button>
+                <div id="adminMessage"></div>
+                <div id="backupDisplay"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyBHUAQuZ-JeNmpeDfdbo5kPwW7v2emH8bg",
@@ -490,7 +519,7 @@
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             window.firebaseDB = db;
-            window.firestoreModules = { collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs };
+            window.firestoreModules = { collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc };
             console.log("🔥 Firebase 연결 성공!");
         } catch (error) {
             console.error("❌ Firebase 연결 실패:", error);
@@ -506,7 +535,7 @@
                 gravity: 0.22,
                 jumpPower: -4.5,
                 obstacleInterval: 180,
-                birdSize: 35,
+                birdSize: 70,
                 maxVelocity: 7,
                 minVelocity: -7
             },
@@ -530,36 +559,31 @@
         let gameSpeed = 2.9;
         let difficultyLevel = 1;
         
-        // 디바이스 감지 및 게임 설정
+        // 디바이스 감지
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-        
-        // 현재 디바이스 설정
         let currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
         
-        // 모바일 뷰포트 높이 정확히 계산
+        // 모바일 뷰포트 설정
         function setVH() {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
         }
         
-        // 캔버스 크기 동적 설정
         function setupCanvas() {
             if (isMobile) {
                 setVH();
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
                 canvas.style.touchAction = 'manipulation';
-                console.log("📱 모바일 모드 활성화");
             } else {
                 canvas.width = 900;
                 canvas.height = 700;
-                console.log("💻 데스크탑 모드 활성화");
             }
         }
         
         setupCanvas();
         
-        // 게임 물리 설정 (디바이스별)
+        // 게임 물리 설정
         let GRAVITY = currentConfig.gravity;
         let JUMP_POWER = currentConfig.jumpPower;
         let MAX_VELOCITY = currentConfig.maxVelocity;
@@ -625,7 +649,7 @@
         let obstacleInterval = currentConfig.obstacleInterval;
         let backgroundScroll = 0;
         
-        // 성능 최적화 - 프레임 제한
+        // 성능 최적화
         const targetFPS = isMobile ? 45 : 60;
         let lastTime = 0;
         const frameDelay = 1000 / targetFPS;
@@ -639,6 +663,105 @@
                 hash = hash & hash;
             }
             return Math.abs(hash).toString().slice(0, 6);
+        }
+        
+        // 관리자 기능
+        async function resetRankings() {
+            if (!window.firebaseDB) {
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            if (!confirm('정말로 랭킹을 초기화하시겠습니까?\n현재 랭킹은 백업됩니다.')) {
+                return;
+            }
+            
+            try {
+                document.getElementById('adminMessage').innerHTML = '<div class="loading">랭킹 초기화 중...</div>';
+                
+                const { collection, query, orderBy, getDocs, addDoc, deleteDoc, doc } = window.firestoreModules;
+                
+                // 현재 랭킹 백업
+                const currentRankings = query(collection(window.firebaseDB, 'rankings'), orderBy('score', 'desc'));
+                const snapshot = await getDocs(currentRankings);
+                
+                const backupData = [];
+                const deletePromises = [];
+                
+                snapshot.forEach((docSnapshot) => {
+                    const data = docSnapshot.data();
+                    backupData.push({
+                        ...data,
+                        backupDate: new Date().toLocaleString('ko-KR')
+                    });
+                    deletePromises.push(deleteDoc(doc(window.firebaseDB, 'rankings', docSnapshot.id)));
+                });
+                
+                // 기존 백업 삭제
+                const oldBackup = query(collection(window.firebaseDB, 'backup_rankings'));
+                const oldBackupSnapshot = await getDocs(oldBackup);
+                const deleteOldBackup = [];
+                oldBackupSnapshot.forEach((docSnapshot) => {
+                    deleteOldBackup.push(deleteDoc(doc(window.firebaseDB, 'backup_rankings', docSnapshot.id)));
+                });
+                await Promise.all(deleteOldBackup);
+                
+                // 새 백업 저장
+                const backupPromises = backupData.map(data => 
+                    addDoc(collection(window.firebaseDB, 'backup_rankings'), data)
+                );
+                await Promise.all(backupPromises);
+                
+                // 현재 랭킹 삭제
+                await Promise.all(deletePromises);
+                
+                document.getElementById('adminMessage').innerHTML = '<div class="success-message">✅ 랭킹이 초기화되었습니다!</div>';
+                loadTop3Rankings();
+                
+            } catch (error) {
+                console.error('랭킹 초기화 오류:', error);
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">초기화 중 오류가 발생했습니다</div>';
+            }
+        }
+        
+        async function viewBackupData() {
+            if (!window.firebaseDB) {
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            try {
+                const { collection, query, orderBy, getDocs } = window.firestoreModules;
+                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('score', 'desc'));
+                const snapshot = await getDocs(backupQuery);
+                
+                let html = '<h3>📋 백업된 랭킹 기록</h3>';
+                
+                if (snapshot.empty) {
+                    html += '<p>백업된 기록이 없습니다.</p>';
+                } else {
+                    snapshot.forEach((doc, index) => {
+                        const data = doc.data();
+                        const deviceIcon = data.device === 'mobile' ? '📱' : '💻';
+                        html += `<div class="backup-item">
+                            ${index + 1}위. ${data.nickname} ${deviceIcon} - ${data.score}점
+                            <br><small>백업일: ${data.backupDate}</small>
+                        </div>`;
+                    });
+                }
+                
+                document.getElementById('backupDisplay').innerHTML = html;
+                
+            } catch (error) {
+                console.error('백업 조회 오류:', error);
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">백업 조회 중 오류가 발생했습니다</div>';
+            }
+        }
+        
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+            document.getElementById('adminMessage').innerHTML = '';
+            document.getElementById('backupDisplay').innerHTML = '';
         }
         
         // Firebase 랭킹 함수들
@@ -741,6 +864,14 @@
             const nickname = document.getElementById('checkNickname').value.trim();
             const pin = document.getElementById('checkPin').value.trim();
             const displayEl = document.getElementById('myRankDisplay');
+            
+            // 관리자 로그인 확인
+            if (nickname === 'milders_boss' && pin === '02150215') {
+                document.getElementById('adminModal').classList.remove('hidden');
+                document.getElementById('checkNickname').value = '';
+                document.getElementById('checkPin').value = '';
+                return;
+            }
             
             if (!nickname || !pin) {
                 displayEl.innerHTML = '<div class="error-message">닉네임과 개인확인번호를 입력하세요</div>';
@@ -1060,7 +1191,6 @@
             score = 0;
             difficultyLevel = 1;
             
-            // 디바이스별 초기 설정
             currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
             gameSpeed = currentConfig.gameSpeed;
             obstacleInterval = currentConfig.obstacleInterval;
@@ -1115,6 +1245,58 @@
             document.getElementById('myRankDisplay').innerHTML = '';
         }
         
+        // 입력 제한 함수들
+        function setupPinValidation(elementId) {
+            const pinInput = document.getElementById(elementId);
+            
+            pinInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                if (e.target.value.length > 6) {
+                    e.target.value = e.target.value.slice(0, 6);
+                }
+            });
+            
+            pinInput.addEventListener('keydown', (e) => {
+                if (!/[0-9]/.test(e.key) && 
+                    !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        function setupNicknameValidation(elementId) {
+            const nicknameInput = document.getElementById(elementId);
+            
+            nicknameInput.addEventListener('input', (e) => {
+                // 한글, 영어, 숫자만 허용
+                let value = e.target.value;
+                
+                // 한글 입력 중인지 확인 (조합 중인 문자)
+                if (e.inputType === 'insertCompositionText' || e.isComposing) {
+                    return; // 한글 조합 중일 때는 제한하지 않음
+                }
+                
+                // 완성된 입력에 대해서만 필터링
+                value = value.replace(/[^가-힣a-zA-Z0-9]/g, '');
+                
+                if (value.length > 10) {
+                    value = value.slice(0, 10);
+                }
+                
+                e.target.value = value;
+            });
+            
+            // 조합 종료 후 최종 검증
+            nicknameInput.addEventListener('compositionend', (e) => {
+                let value = e.target.value;
+                value = value.replace(/[^가-힣a-zA-Z0-9]/g, '');
+                if (value.length > 10) {
+                    value = value.slice(0, 10);
+                }
+                e.target.value = value;
+            });
+        }
+        
         // 이벤트 리스너
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
@@ -1123,7 +1305,6 @@
             }
         });
         
-        // 터치/클릭 이벤트
         function handleTouchStart(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -1140,7 +1321,6 @@
             e.preventDefault();
         }, { passive: false });
         
-        // 더블탭 줌 방지
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length > 1) {
                 e.preventDefault();
@@ -1172,42 +1352,6 @@
             }
         });
         
-        // 개인확인번호 입력 제한 (숫자만 허용)
-        function setupPinValidation(elementId) {
-            const pinInput = document.getElementById(elementId);
-            
-            pinInput.addEventListener('input', (e) => {
-                // 숫자가 아닌 문자 제거
-                e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                // 6자리 제한
-                if (e.target.value.length > 6) {
-                    e.target.value = e.target.value.slice(0, 6);
-                }
-            });
-            
-            pinInput.addEventListener('keydown', (e) => {
-                // 숫자, 백스페이스, 델리트, 탭, 엔터만 허용
-                if (!/[0-9]/.test(e.key) && 
-                    !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                    e.preventDefault();
-                }
-            });
-        }
-        
-        // 닉네임 입력 제한 (한글, 영어, 숫자만 허용)
-        function setupNicknameValidation(elementId) {
-            const nicknameInput = document.getElementById(elementId);
-            
-            nicknameInput.addEventListener('input', (e) => {
-                // 한글, 영어, 숫자만 허용 (특수문자 제거)
-                e.target.value = e.target.value.replace(/[^가-힣a-zA-Z0-9]/g, '');
-                // 10글자 제한
-                if (e.target.value.length > 10) {
-                    e.target.value = e.target.value.slice(0, 10);
-                }
-            });
-        }
-        
         // 입력 제한 초기화
         setupPinValidation('checkPin');
         setupPinValidation('playerPin');
@@ -1217,7 +1361,6 @@
         // 화면 크기 변경 감지
         window.addEventListener('resize', () => {
             setupCanvas();
-            // 물리 설정 재조정
             currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
             GRAVITY = currentConfig.gravity;
             JUMP_POWER = currentConfig.jumpPower;
@@ -1225,7 +1368,6 @@
             MIN_VELOCITY = currentConfig.minVelocity;
         });
         
-        // 뷰포트 높이 변경 감지 (모바일)
         window.addEventListener('orientationchange', () => {
             setTimeout(() => {
                 setVH();
@@ -1234,7 +1376,7 @@
         });
         
         // 초기화
-        console.log(`Milders Flappy Martin v3 준비 완료! (${isMobile ? '모바일' : '데스크탑'})`);
+        console.log(`Milders Flappy Martin 준비 완료! (${isMobile ? '모바일' : '데스크탑'})`);
         
         setTimeout(() => {
             if (window.firebaseDB) {
@@ -1253,3 +1395,4 @@
     </script>
 </body>
 </html>
+                
