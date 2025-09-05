@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Milders Flappy Martin</title>
+    <title>Milders Flappy Martin v3</title>
     <style>
         * {
             margin: 0;
@@ -76,7 +76,7 @@
             }
         }
 
-        /* 모바일 최적화 - 완전히 새로 작성 */
+        /* 모바일 최적화 */
         @media (max-width: 768px) {
             body {
                 margin: 0;
@@ -124,7 +124,6 @@
                 height: calc(var(--vh, 1vh) * 100);
                 max-width: 100vw;
                 max-height: 100vh;
-                /* 스크롤바 숨기기 */
                 scrollbar-width: none;
                 -ms-overflow-style: none;
             }
@@ -197,7 +196,6 @@
                 margin: 15px;
             }
             
-            /* 게임오버 화면 모바일 최적화 */
             #gameOverScreen {
                 justify-content: flex-start;
                 padding-top: 10vh;
@@ -434,7 +432,7 @@
         
         <!-- 시작 화면 -->
         <div id="startScreen" class="ui-overlay">
-            <h1 class="game-title">Milders Flappy Martin</h1>
+            <h1 class="game-title">Milders Flappy Martin v3</h1>
             <p>탭하거나 스페이스바로 점프하세요!</p>
             <img id="startButtonImage" src="startbutton.png" alt="게임 시작" onclick="startGame()">
             
@@ -504,16 +502,16 @@
         // 디바이스별 게임 설정
         const DEVICE_CONFIGS = {
             mobile: {
-                gameSpeed: 1.8,
+                gameSpeed: 1.9,
                 gravity: 0.22,
-                jumpPower: -4.2,
+                jumpPower: -4.5,
                 obstacleInterval: 180,
-                birdSize: 30,
+                birdSize: 35,
                 maxVelocity: 7,
                 minVelocity: -7
             },
             desktop: {
-                gameSpeed: 2.8,
+                gameSpeed: 2.9,
                 gravity: 0.45,
                 jumpPower: -7.5,
                 obstacleInterval: 120,
@@ -529,7 +527,7 @@
         
         let gameState = 'start';
         let score = 0;
-        let gameSpeed = 2.2;
+        let gameSpeed = 2.9;
         let difficultyLevel = 1;
         
         // 디바이스 감지 및 게임 설정
@@ -917,6 +915,8 @@
         function drawCloud(x, y) {
             ctx.beginPath();
             ctx.arc(x + 25, y - 15, 20, 0, Math.PI * 2);
+            ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
+            ctx.arc(x + 50, y, 20, 0, Math.PI * 2);
             ctx.fill();
         }
         
@@ -1055,7 +1055,7 @@
         }
         
         function startGame() {
-            console.log(`🎮 게임 시작! (${isMobile ? '모바일' : '데스크탑'} 모드)`);
+            console.log(`게임 시작! (${isMobile ? '모바일' : '데스크탑'} 모드)`);
             gameState = 'playing';
             score = 0;
             difficultyLevel = 1;
@@ -1123,7 +1123,7 @@
             }
         });
         
-        // 터치/클릭 이벤트 (개선됨)
+        // 터치/클릭 이벤트
         function handleTouchStart(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -1192,14 +1192,14 @@
         });
         
         // 초기화
-        console.log(`🎯 Milders Flappy Martin 준비 완료! (${isMobile ? '📱 모바일' : '💻 데스크탑'})`);
+        console.log(`Milders Flappy Martin v3 준비 완료! (${isMobile ? '모바일' : '데스크탑'})`);
         
         setTimeout(() => {
             if (window.firebaseDB) {
                 loadTop3Rankings();
-                updateConnectionStatus('online', isMobile ? '📱 모바일 연결' : '💻 데스크탑 연결');
+                updateConnectionStatus('online', isMobile ? '모바일 연결' : '데스크탑 연결');
             } else {
-                updateConnectionStatus('offline', '❌ Firebase 오류');
+                updateConnectionStatus('offline', 'Firebase 오류');
                 document.getElementById('top3Rankings').innerHTML = `
                     <p style="color: #f44336;">Firebase 연결 오류</p>
                     <p style="font-size: 12px;">새로고침 후 다시 시도해주세요</p>
