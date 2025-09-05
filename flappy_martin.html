@@ -1268,8 +1268,6 @@ snapshot.forEach((doc) => {
     const displayIndex = totalResets - resetIndex + 1;  // 역순 번호
     
     html += `<h4 style="margin-top: 20px; color: #2196F3;">${displayIndex}번째 초기화 (${resetDate})</h4>`;
-    
-    html += `<h4 style="margin-top: 20px; color: #2196F3;">${resetIndex}번째 초기화 (${resetDate})</h4>`;
                         html += `<p style="font-size: 12px; color: #666;">총 ${data.totalBackedUp || 0}명 백업</p>`;
                         
                         if (data.rankings && data.rankings.length > 0) {
