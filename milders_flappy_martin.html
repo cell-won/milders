@@ -996,8 +996,8 @@
                     
                     if (score % 5 === 0) {
                         difficultyLevel++;
-                        gameSpeed += isMobile ? 0.05 : 0.12;
-                        obstacleInterval = Math.max(isMobile ? 120 : 80, obstacleInterval - 2);
+                        gameSpeed += 0.1;
+                        obstacleInterval = Math.max(isMobile ? 100 : 60, obstacleInterval - 4);
                     }
                 }
             });
