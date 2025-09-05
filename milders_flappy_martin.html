@@ -1172,6 +1172,48 @@
             }
         });
         
+        // 개인확인번호 입력 제한 (숫자만 허용)
+        function setupPinValidation(elementId) {
+            const pinInput = document.getElementById(elementId);
+            
+            pinInput.addEventListener('input', (e) => {
+                // 숫자가 아닌 문자 제거
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                // 6자리 제한
+                if (e.target.value.length > 6) {
+                    e.target.value = e.target.value.slice(0, 6);
+                }
+            });
+            
+            pinInput.addEventListener('keydown', (e) => {
+                // 숫자, 백스페이스, 델리트, 탭, 엔터만 허용
+                if (!/[0-9]/.test(e.key) && 
+                    !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        // 닉네임 입력 제한 (한글, 영어, 숫자만 허용)
+        function setupNicknameValidation(elementId) {
+            const nicknameInput = document.getElementById(elementId);
+            
+            nicknameInput.addEventListener('input', (e) => {
+                // 한글, 영어, 숫자만 허용 (특수문자 제거)
+                e.target.value = e.target.value.replace(/[^가-힣a-zA-Z0-9]/g, '');
+                // 10글자 제한
+                if (e.target.value.length > 10) {
+                    e.target.value = e.target.value.slice(0, 10);
+                }
+            });
+        }
+        
+        // 입력 제한 초기화
+        setupPinValidation('checkPin');
+        setupPinValidation('playerPin');
+        setupNicknameValidation('checkNickname');
+        setupNicknameValidation('playerName');
+        
         // 화면 크기 변경 감지
         window.addEventListener('resize', () => {
             setupCanvas();
