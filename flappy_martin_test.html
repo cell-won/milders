@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Milders Flappy Martin</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- 소셜 공유 메타 태그 -->
+    <meta property="og:title" content="Milders Flappy Martin">
+    <meta property="og:description" content="플래피 마틴 게임에 도전해보세요! 최고 점수를 달성하고 친구들과 경쟁하세요!">
+    <meta property="og:type" content="game">
+    <meta property="og:url" content="https://cell-won.github.io/milders/flappy_martin_test.html">
+    
+    <!-- 카카오 SDK -->
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 3px solid #333;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        /* 데스크탑 최적화 */
+        @media (min-width: 769px) {
+            #gameContainer {
+                width: 900px;
+                height: 700px;
+            }
+            
+            #gameCanvas {
+                width: 900px;
+                height: 700px;
+            }
+            
+            .ui-overlay {
+                font-size: 24px;
+            }
+            
+            .game-title {
+                font-size: 42px;
+                margin-bottom: 20px;
+            }
+            
+            .all-time-record {
+                font-size: 18px;
+                margin-bottom: 25px;
+            }
+            
+            .final-score-big {
+                font-size: 48px;
+                margin: 20px 0;
+            }
+            
+            button {
+                padding: 15px 30px;
+                font-size: 18px;
+                margin: 10px;
+            }
+            
+            input {
+                padding: 12px;
+                font-size: 16px;
+                width: 200px;
+                margin: 8px;
+            }
+            
+            #rankingSection {
+                flex-direction: row;
+                gap: 30px;
+            }
+            
+            #score {
+                font-size: 32px;
+                top: 20px;
+                left: 20px;
+            }
+        }
+
+        /* 모바일 최적화 - 메인 화면 UI 개선 */
+        @media (max-width: 768px) {
+            body {
+                margin: 0;
+                padding: 0;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                align-items: stretch;
+                justify-content: stretch;
+            }
+            
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                border-radius: 0;
+                border: none;
+                max-width: 100vw;
+                max-height: 100vh;
+                position: relative;
+            }
+            
+            #gameCanvas {
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                max-width: 100vw;
+                max-height: 100vh;
+                display: block;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            
+            .ui-overlay {
+                font-size: 16px;
+                padding: 20px 15px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                max-width: 100vw;
+                max-height: 100vh;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                box-sizing: border-box;
+            }
+            
+            .ui-overlay::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .game-title {
+                font-size: clamp(22px, 6vw, 32px);
+                margin-bottom: 15px;
+                text-align: center;
+                padding: 0 10px;
+            }
+            
+            .all-time-record {
+                font-size: clamp(11px, 3vw, 14px);
+                margin-bottom: 20px;
+                text-align: center;
+                padding: 8px 15px;
+            }
+            
+            .final-score-big {
+                font-size: clamp(28px, 8vw, 42px);
+                margin: 15px 0;
+            }
+            
+            button {
+                padding: 16px 24px;
+                font-size: 16px;
+                margin: 8px 5px;
+                min-height: 48px;
+                border-radius: 8px;
+                min-width: 120px;
+                width: auto;
+            }
+            
+            input, textarea {
+                padding: 16px;
+                font-size: 16px;
+                width: calc(100% - 10px);
+                max-width: 280px;
+                margin: 10px 0;
+                border-radius: 8px;
+                border: 2px solid #ccc;
+            }
+            
+            #rankingSection {
+                flex-direction: column;
+                gap: 20px;
+                width: 100%;
+                align-items: center;
+                max-width: 100%;
+                margin-top: 10px;
+            }
+            
+            #rankingList, #rankingControls {
+                width: calc(100% - 30px);
+                max-width: 380px;
+                margin: 0 auto;
+            }
+            
+            #score {
+                font-size: clamp(20px, 5vw, 28px);
+                position: fixed;
+                top: env(safe-area-inset-top, 15px);
+                left: 15px;
+                z-index: 1000;
+                max-width: calc(100vw - 30px);
+            }
+            
+            #connectionStatus {
+                position: fixed;
+                top: env(safe-area-inset-top, 15px);
+                right: 15px;
+                font-size: 11px;
+                padding: 4px 8px;
+                z-index: 1000;
+                max-width: 120px;
+            }
+            
+            .share-buttons {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .share-button {
+                min-width: 100px;
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            -webkit-appearance: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        button.warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+
+        /* 소셜 공유 버튼 스타일 */
+        .share-button {
+            padding: 12px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .share-button.kakao {
+            background: #FEE500;
+            color: #3C1E1E;
+        }
+
+        .share-button.web-share {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .share-button.copy-link {
+            background: linear-gradient(135deg, #36d1dc, #5b86e5);
+            color: white;
+        }
+
+        .share-button.instagram {
+            background: linear-gradient(135deg, #e1306c, #f77737);
+            color: white;
+        }
+
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .final-score-big {
+            color: #FFD700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            font-weight: bold;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #rankingSection {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #rankingList, #rankingControls {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 8px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .rank-item:hover {
+            background: rgba(255,215,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .rank-item.top3 {
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+            padding: 15px 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            color: #333;
+            border: none;
+            box-shadow: 0 4px 8px rgba(255,215,0,0.3);
+        }
+
+        #score {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px);
+        }
+
+        input[type="text"], input[type="password"], input[type="date"], textarea {
+            border: 2px solid #ddd;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76,175,80,0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        #startButtonImage {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            max-width: 200px;
+            margin: 20px;
+        }
+
+        #startButtonImage:hover {
+            transform: scale(1.1);
+        }
+
+        .game-title {
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.8);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 역대 최고 기록 스타일 */
+        .all-time-record {
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: rgba(255, 215, 0, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        #connectionStatus {
+            position: absolute;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+
+        .online {
+            background: rgba(76,175,80,0.9);
+            color: white;
+        }
+
+        .offline {
+            background: rgba(244,67,54,0.9);
+            color: white;
+        }
+
+        .loading {
+            background: rgba(255,152,0,0.9);
+            color: white;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 14px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(244,67,54,0.1);
+            border-radius: 5px;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            font-size: 14px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(76,175,80,0.1);
+            border-radius: 5px;
+        }
+
+        /* 관리자 모달 */
+        .admin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .admin-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #333;
+        }
+
+        .backup-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0,0,0,0.05);
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+
+        /* 공지사항 모달 */
+        .notice-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .notice-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .notice-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .notice-body {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+
+        .notice-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .notice-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 관리자 공지사항 관리 */
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .admin-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .admin-tab.active {
+            border-bottom-color: #4CAF50;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .admin-tab-content {
+            display: none;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        .notice-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .notice-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .notice-item.expired {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
+        .notice-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .notice-item-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .notice-item-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        /* 방문자 카운터 */
+        .visitor-counter {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+
+        .visitor-counter.game-playing {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* iOS 스타일 적용 */
+        @supports (-webkit-touch-callout: none) {
+            input, textarea {
+                -webkit-appearance: none;
+                border-radius: 10px;
+            }
+            
+            button {
+                -webkit-appearance: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="900" height="700"></canvas>
+        
+        <div id="connectionStatus" class="loading">연결 중...</div>
+        <div id="score">점수: 0</div>
+        
+        <!-- 시작 화면 -->
+        <div id="startScreen" class="ui-overlay">
+            <h1 class="game-title">Milders Flappy Martin</h1>
+            
+            <!-- 역대 최고 기록 표시 -->
+            <div id="allTimeRecord" class="all-time-record">
+                🏆 역대 최고 기록을 불러오는 중...
+            </div>
+            
+            <p>탭하거나 스페이스바로 점프하세요!</p>
+            <img id="startButtonImage" src="startbutton.png" alt="게임 시작" onclick="startGame()">
+            
+            <div id="rankingSection">
+                <div id="rankingList">
+                    <h3>TOP 3 랭킹</h3>
+                    <div id="top3Rankings">로딩 중...</div>
+                </div>
+                
+                <div id="rankingControls">
+                    <h3>내 순위 확인</h3>
+                    <input type="text" id="checkNickname" placeholder="닉네임" maxlength="20" autocomplete="off">
+                    <input type="password" id="checkPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                    <br>
+                    <button class="secondary" onclick="checkMyRanking()">내 순위 보기</button>
+                    <div id="myRankDisplay"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 게임오버 화면 -->
+        <div id="gameOverScreen" class="ui-overlay hidden">
+            <img src="gameover.png" alt="게임 오버" style="max-width: 250px; margin: 20px;">
+            
+            <!-- 최종 점수 크게 표시 -->
+            <div id="finalScore" class="final-score-big">최종 점수: 0</div>
+            
+            <!-- 소셜 공유 버튼들 -->
+            <div class="share-buttons">
+                <button class="share-button kakao" onclick="shareToKakao()">
+                    <span>💬</span> 카카오톡 공유
+                </button>
+                <button class="share-button web-share" onclick="shareViaWebAPI()" id="webShareBtn" style="display: none;">
+                    <span>📱</span> 공유하기
+                </button>
+                <button class="share-button copy-link" onclick="copyGameLink()">
+                    <span>🔗</span> 링크 복사
+                </button>
+                <button class="share-button instagram" onclick="downloadGameImage()">
+                    <span>📷</span> 인스타그램용
+                </button>
+            </div>
+            
+            <div id="nameInputSection" class="hidden">
+                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="20" autocomplete="off">
+                <input type="password" id="playerPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                <p style="font-size: 12px; color: #ccc;">* 개인확인번호는 6자리 숫자로 입력하세요</p>
+                <br>
+                <button onclick="submitScore()">랭킹 등록</button>
+                <div id="submitMessage"></div>
+            </div>
+            <button onclick="restartGame()">다시 시작</button>
+            <button onclick="showStartScreen()">메인 메뉴</button>
+        </div>
+
+        <!-- 관리자 모달 -->
+        <div id="adminModal" class="admin-modal hidden">
+            <div class="admin-content">
+                <h2>관리자 모드</h2>
+                
+                <div class="admin-tabs">
+                    <div class="admin-tab active" onclick="switchAdminTab('ranking')">랭킹 관리</div>
+                    <div class="admin-tab" onclick="switchAdminTab('notice')">공지사항 관리</div>
+                </div>
+                
+                <!-- 랭킹 관리 탭 -->
+                <div id="ranking-tab" class="admin-tab-content active">
+                    <p>관리자 권한으로 로그인되었습니다.</p>
+                    <br>
+                    <button class="danger" onclick="resetRankings()">랭킹 초기화</button>
+                    <button class="warning" onclick="viewBackupData()">백업 기록 보기</button>
+                    <div id="adminMessage"></div>
+                    <div id="backupDisplay"></div>
+                </div>
+                
+                <!-- 공지사항 관리 탭 -->
+                <div id="notice-tab" class="admin-tab-content">
+                    <h3>새 공지사항 작성</h3>
+                    <div class="notice-form">
+                        <input type="text" id="noticeTitle" placeholder="공지사항 제목" maxlength="100">
+                        <textarea id="noticeContent" placeholder="공지사항 내용" rows="5" maxlength="1000"></textarea>
+                        <input type="date" id="noticeExpireDate" placeholder="공지 게시 마감 기간" title="만료일 (선택사항)">
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="saveNotice()">공지사항 저장</button>
+                            <button class="secondary" onclick="clearNoticeForm()">초기화</button>
+                        </div>
+                        <div id="noticeMessage"></div>
+                    </div>
+                    
+                    <hr style="margin: 30px 0;">
+                    
+                    <h3>기존 공지사항 관리</h3>
+                    <div id="noticeList">로딩 중...</div>
+                </div>
+                
+                <br>
+                <button class="secondary" onclick="closeAdminModal()">닫기</button>
+            </div>
+        </div>
+
+        <!-- 공지사항 표시 모달 -->
+        <div id="noticeModal" class="notice-modal hidden">
+            <div class="notice-content">
+                <div class="notice-title" id="noticeModalTitle"></div>
+                <div class="notice-body" id="noticeModalContent"></div>
+                <div class="notice-actions">
+                    <div class="notice-checkbox">
+                        <input type="checkbox" id="dontShowToday">
+                        <label for="dontShowToday">오늘 하루 보지 않기</label>
+                    </div>
+                    <button onclick="closeNoticeModal()">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 방문자 카운터 -->
+    <div class="visitor-counter" id="visitorCounter">
+        <span id="visitorCount">방문자: 로딩중...</span>
+    </div>
+
+<!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc, updateDoc, increment, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHUAQuZ-JeNmpeDfdbo5kPwW7v2emH8bg",
+            authDomain: "milders-flappy-martin.firebaseapp.com",
+            projectId: "milders-flappy-martin",
+            storageBucket: "milders-flappy-martin.firebasestorage.app",
+            messagingSenderId: "505347834080",
+            appId: "1:505347834080:web:c10bcf079e1681ffd19085"
+        };
+
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            window.firebaseDB = db;
+            window.firestoreModules = { collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc, updateDoc, increment, setDoc, getDoc };
+            window.firebaseAuth = getAuth(app);
+            window.authModules = { signInWithEmailAndPassword, signOut };
+            console.log("Firebase 연결 성공!");
+        } catch (error) {
+            console.error("Firebase 연결 실패:", error);
+            window.firebaseDB = null;
+        }
+    </script>
+
+<script>
+        // 카카오 SDK 초기화
+        if (typeof Kakao !== 'undefined') {
+            Kakao.init('40e318ae679d1f96dadf1f2deb3aae11');
+            console.log('카카오 SDK 초기화 완료');
+        } else {
+            console.error('카카오 SDK 로드 실패');
+        }
+        
+        // 게임 URL 설정
+        const GAME_URLS = {
+            test: 'https://cell-won.github.io/milders/flappy_martin_test.html',
+            production: 'https://m.site.naver.com/1Qf5J'
+        };
+        
+        let currentGameUrl = GAME_URLS.test;
+        
+        // 디바이스별 게임 설정
+        const DEVICE_CONFIGS = {
+            mobile: {
+                gameSpeed: 1.9,
+                gravity: 0.22,
+                jumpPower: -5.2,
+                obstacleInterval: 165,
+                birdSize: 55,
+                maxVelocity: 7,
+                minVelocity: -7,
+                speedIncrease: 0.15,
+                obstacleVariation: 40,
+                gapVariation: 40,
+                firstObstacleDelay: 75
+            },
+            desktop: {
+                gameSpeed: 2.9,
+                gravity: 0.45,
+                jumpPower: -7.5,
+                obstacleInterval: 110,
+                birdSize: 50,
+                maxVelocity: 11,
+                minVelocity: -11,
+                speedIncrease: 0.19,
+                obstacleVariation: 35,
+                gapVariation: 35,
+                firstObstacleDelay: 50
+            }
+        };
+
+        // 게임 기본 변수
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = 'start';
+        let score = 0;
+        let gameSpeed = 2.9;
+        let difficultyLevel = 1;
+        let lastDifficultyScore = 0;
+        let currentNoticeIndex = 0;
+        let pendingNotices = [];
+        let isFirstObstacle = true;
+        
+        // 아이템 시스템 변수
+        let items = [];
+        let itemTimer = 0;
+        let isInvincible = false;
+        let invincibleTimer = 0;
+        let invincibleDuration = 5000;
+        
+        // 플로팅 텍스트 시스템
+        let floatingTexts = [];
+        
+        // 상위 10위 랭킹 확인 변수
+        let pendingGameOverAction = null;
+        
+        // 디바이스 감지
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        let currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+        
+        // 모바일 뷰포트 설정
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        function setupCanvas() {
+            if (isMobile) {
+                setVH();
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                canvas.style.touchAction = 'manipulation';
+            } else {
+                canvas.width = 900;
+                canvas.height = 700;
+            }
+        }
+        
+        setupCanvas();
+        
+        // 게임 물리 설정
+        let GRAVITY = currentConfig.gravity;
+        let JUMP_POWER = currentConfig.jumpPower;
+        let MAX_VELOCITY = currentConfig.maxVelocity;
+        let MIN_VELOCITY = currentConfig.minVelocity;
+        
+        // 기본 함수들
+        function updateConnectionStatus(status, text) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = status;
+            statusEl.textContent = text;
+        }
+        
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString().slice(0, 6);
+        }
+        
+        function checkWebShareSupport() {
+            if (navigator.share) {
+                document.getElementById('webShareBtn').style.display = 'inline-flex';
+            }
+        }
+
+// 동적 점수 이미지 생성 함수
+        function generateScoreImage() {
+            const imageCanvas = document.createElement('canvas');
+            const imageCtx = imageCanvas.getContext('2d');
+            
+            // 카카오톡 권장 비율 (1200x630)
+            imageCanvas.width = 1200;
+            imageCanvas.height = 630;
+            
+            // 배경 그라디언트
+            const gradient = imageCtx.createLinearGradient(0, 0, 0, imageCanvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#98FB98');
+            imageCtx.fillStyle = gradient;
+            imageCtx.fillRect(0, 0, imageCanvas.width, imageCanvas.height);
+            
+            // 게임 제목
+            imageCtx.fillStyle = '#FFD700';
+            imageCtx.font = 'bold 60px Arial';
+            imageCtx.textAlign = 'center';
+            imageCtx.fillText('Milders Flappy Martin', imageCanvas.width / 2, 150);
+            
+            // 점수 표시 (큰 글씨)
+            imageCtx.fillStyle = '#FFFFFF';
+            imageCtx.font = 'bold 120px Arial';
+            imageCtx.fillText(score + '점 달성!', imageCanvas.width / 2, 320);
+            
+            // 메시지
+            imageCtx.fillStyle = '#333333';
+            imageCtx.font = '40px Arial';
+            imageCtx.fillText('나보다 높은 점수를 얻을 수 있나요?', imageCanvas.width / 2, 450);
+            
+            // URL 표시
+            imageCtx.fillStyle = '#666666';
+            imageCtx.font = '30px Arial';
+            imageCtx.fillText(currentGameUrl, imageCanvas.width / 2, 550);
+            
+            return imageCanvas.toDataURL('image/jpeg', 0.8);
+        }
+        
+        // 소셜 공유 함수들
+        function shareToKakao() {
+            if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
+                alert('카카오 SDK가 초기화되지 않았습니다. 링크를 복사해서 공유해주세요.');
+                copyGameLink();
+                return;
+            }
+            
+            try {
+                const dynamicImageUrl = generateScoreImage();
+                
+                Kakao.Share.sendDefault({
+                    objectType: 'feed',
+                    content: {
+                        title: '🏆 Milders Flappy Martin에서 ' + score + '점 달성!',
+                        description: '플래피 마틴 게임에 도전해보세요! 나보다 높은 점수를 얻을 수 있나요? 🎮',
+                        imageUrl: dynamicImageUrl,
+                        link: {
+                            webUrl: currentGameUrl,
+                            mobileWebUrl: currentGameUrl
+                        }
+                    },
+                    buttons: [
+                        {
+                            title: '게임 플레이하기',
+                            link: {
+                                webUrl: currentGameUrl,
+                                mobileWebUrl: currentGameUrl
+                            }
+                        }
+                    ]
+                });
+                console.log('카카오톡 공유 성공');
+            } catch (error) {
+                console.error('카카오톡 공유 실패:', error);
+                alert('카카오톡 공유에 실패했습니다. 링크를 복사합니다.');
+                copyGameLink();
+            }
+        }
+        
+        function shareViaWebAPI() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Milders Flappy Martin - ' + score + '점 달성!',
+                    text: '플래피 마틴 게임에서 ' + score + '점을 기록했어요! 여러분도 도전해보세요!',
+                    url: currentGameUrl
+                }).then(() => {
+                    console.log('웹 공유 API 성공');
+                }).catch((error) => {
+                    console.error('웹 공유 API 실패:', error);
+                    copyGameLink();
+                });
+            } else {
+                copyGameLink();
+            }
+        }
+        
+        function copyGameLink() {
+            const gameText = `🎮 Milders Flappy Martin에서 ${score}점 달성! 여러분도 도전해보세요!\n${currentGameUrl}`;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(gameText).then(() => {
+                    alert('게임 링크가 클립보드에 복사되었습니다!');
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(gameText);
+                });
+            } else {
+                fallbackCopyTextToClipboard(gameText);
+            }
+        }
+        
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.width = '2em';
+            textArea.style.height = '2em';
+            textArea.style.padding = '0';
+            textArea.style.border = 'none';
+            textArea.style.outline = 'none';
+            textArea.style.boxShadow = 'none';
+            textArea.style.background = 'transparent';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('게임 링크가 클립보드에 복사되었습니다!');
+            } catch (err) {
+                console.error('클립보드 복사 실패:', err);
+                alert('링크 복사에 실패했습니다. 수동으로 복사해주세요:\n' + text);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        function downloadGameImage() {
+            // 인스타그램 스토리용 이미지 생성 (9:16 비율)
+            const imageCanvas = document.createElement('canvas');
+            const imageCtx = imageCanvas.getContext('2d');
+            
+            imageCanvas.width = 1080;
+            imageCanvas.height = 1920;
+            
+            // 배경 그라디언트
+            const gradient = imageCtx.createLinearGradient(0, 0, 0, imageCanvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#98FB98');
+            imageCtx.fillStyle = gradient;
+            imageCtx.fillRect(0, 0, imageCanvas.width, imageCanvas.height);
+            
+            // 게임 제목
+            imageCtx.fillStyle = '#FFD700';
+            imageCtx.font = 'bold 80px Arial';
+            imageCtx.textAlign = 'center';
+            imageCtx.fillText('Milders Flappy Martin', imageCanvas.width / 2, 200);
+            
+            // 점수 표시
+            imageCtx.fillStyle = '#FFFFFF';
+            imageCtx.font = 'bold 120px Arial';
+            imageCtx.fillText(score + '점 달성!', imageCanvas.width / 2, 400);
+            
+            // 메시지
+            imageCtx.fillStyle = '#333333';
+            imageCtx.font = '60px Arial';
+            imageCtx.fillText('나보다 높은 점수를 얻을 수 있나요?', imageCanvas.width / 2, 600);
+            
+            // URL 표시
+            imageCtx.fillStyle = '#666666';
+            imageCtx.font = '40px Arial';
+            imageCtx.fillText(currentGameUrl, imageCanvas.width / 2, 1700);
+            
+            // 이미지 다운로드
+            try {
+                const link = document.createElement('a');
+                link.download = `flappy_martin_${score}점.png`;
+                link.href = imageCanvas.toDataURL('image/png');
+                link.click();
+                
+                alert('이미지가 다운로드되었습니다!\n인스타그램 스토리에 업로드한 후 게임 링크를 수동으로 추가해주세요.');
+            } catch (error) {
+                console.error('이미지 다운로드 실패:', error);
+                alert('이미지 다운로드에 실패했습니다.');
+            }
+        }
+        
+        // 신기록 시스템
+        async function loadAllTimeRecord() {
+            if (!window.firebaseDB) {
+                document.getElementById('allTimeRecord').innerHTML = '🏆 역대 최고 기록: 연결 필요';
+                return;
+            }
+            
+            try {
+                const { doc, getDoc } = window.firestoreModules;
+                const recordRef = doc(window.firebaseDB, 'all_time_record', 'highest');
+                const recordDoc = await getDoc(recordRef);
+                
+                if (recordDoc.exists()) {
+                    const data = recordDoc.data();
+                    const deviceIcon = data.device === 'mobile' ? '📱' : '💻';
+                    document.getElementById('allTimeRecord').innerHTML = 
+                        `🏆 역대 최고 기록: ${data.nickname} ${deviceIcon} - ${data.score}점 (${data.date})`;
+                } else {
+                    document.getElementById('allTimeRecord').innerHTML = '🏆 역대 최고 기록: 아직 없음';
+                }
+            } catch (error) {
+                console.error('신기록 로드 오류:', error);
+                document.getElementById('allTimeRecord').innerHTML = '🏆 역대 최고 기록: 로드 실패';
+            }
+        }
+        
+        async function updateAllTimeRecord(score, nickname, device, date) {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { doc, getDoc, setDoc } = window.firestoreModules;
+                const recordRef = doc(window.firebaseDB, 'all_time_record', 'highest');
+                const recordDoc = await getDoc(recordRef);
+                
+                let shouldUpdate = false;
+                
+                if (!recordDoc.exists()) {
+                    shouldUpdate = true;
+                } else {
+                    const currentRecord = recordDoc.data();
+                    if (score > currentRecord.score) {
+                        shouldUpdate = true;
+                    }
+                }
+                
+                if (shouldUpdate) {
+                    await setDoc(recordRef, {
+                        score: score,
+                        nickname: nickname,
+                        device: device,
+                        date: date,
+                        timestamp: Date.now()
+                    });
+                    
+                    console.log('신기록 갱신:', score, nickname);
+                    loadAllTimeRecord();
+                }
+                
+            } catch (error) {
+                console.error('신기록 업데이트 오류:', error);
+            }
+        }
+        
+        // 관리자 인증 함수
+        async function adminLogin() {
+            try {
+                const { signInWithEmailAndPassword } = window.authModules;
+                const userCredential = await signInWithEmailAndPassword(window.firebaseAuth, 'milders@milders.com', '021502');
+                await userCredential.user.getIdToken(true);
+                console.log('관리자 인증 성공');
+                document.getElementById('adminModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('관리자 로그인 실패:', error);
+                alert('관리자 인증에 실패했습니다.');
+            }
+        }
+        
+        // 방문자 수 관리
+        async function updateVisitorCount() {
+            if (!window.firebaseDB) return;
+            try {
+                const today = new Date().toDateString();
+                const { doc, setDoc, getDoc, updateDoc, increment } = window.firestoreModules;
+                
+                const totalVisitorRef = doc(window.firebaseDB, 'visitor_stats', 'total');
+                try {
+                    await updateDoc(totalVisitorRef, { count: increment(1), lastUpdate: Date.now() });
+                } catch (error) {
+                    await setDoc(totalVisitorRef, { count: 1, lastUpdate: Date.now() });
+                }
+                
+                const todayVisitorRef = doc(window.firebaseDB, 'visitor_stats', `daily_${today.replace(/\s/g, '_')}`);
+                try {
+                    await updateDoc(todayVisitorRef, { count: increment(1), date: today, lastUpdate: Date.now() });
+                } catch (error) {
+                    await setDoc(todayVisitorRef, { count: 1, date: today, lastUpdate: Date.now() });
+                }
+                
+                loadVisitorCount();
+            } catch (error) {
+                console.error('방문자 수 업데이트 오류:', error);
+            }
+        }
+        
+        async function loadVisitorCount() {
+            if (!window.firebaseDB) return;
+            try {
+                const today = new Date().toDateString();
+                const { doc, getDoc } = window.firestoreModules;
+                
+                const totalDoc = await getDoc(doc(window.firebaseDB, 'visitor_stats', 'total'));
+                const totalCount = totalDoc.exists() ? (totalDoc.data().count || 0) : 0;
+                
+                const todayDoc = await getDoc(doc(window.firebaseDB, 'visitor_stats', `daily_${today.replace(/\s/g, '_')}`));
+                const todayCount = todayDoc.exists() ? (todayDoc.data().count || 0) : 0;
+                
+                document.getElementById('visitorCount').textContent = `총 방문자: ${totalCount} | 오늘: ${todayCount}`;
+            } catch (error) {
+                console.error('방문자 수 로드 오류:', error);
+            }
+        }
+
+// 이미지 관리
+        const gameImages = {
+            background: null, character: null, blockTop: null, blockBottom: null, ground: null,
+            bomb: null, item1: null, item2: null,
+            loaded: { background: false, character: false, blockTop: false, blockBottom: false, ground: false, bomb: false, item1: false, item2: false }
+        };
+        
+        const GROUND_HEIGHT = isMobile ? 60 : 80;
+        
+        function loadGameImage(key, filename) {
+            const img = new Image();
+            img.onload = () => { gameImages[key] = img; gameImages.loaded[key] = true; };
+            img.onerror = () => { gameImages.loaded[key] = false; };
+            img.src = filename;
+        }
+        
+        ['background', 'character', 'blockTop', 'blockBottom', 'ground', 'bomb', 'item1', 'item2'].forEach((key, i) => {
+            const files = ['background.png', 'martin.png', 'blocktop.png', 'blockbottom.png', 'ground.png', 'bomb.png', 'item1.png', 'item2.png'];
+            loadGameImage(key, files[i]);
+        });
+        
+        // 캐릭터와 게임 오브젝트
+        const bird = { x: isMobile ? canvas.width * 0.15 : 120, y: canvas.height / 2, width: currentConfig.birdSize, height: currentConfig.birdSize, velocity: 0, rotation: 0 };
+        let obstacles = [], obstacleTimer = 0, obstacleInterval = currentConfig.obstacleInterval, backgroundScroll = 0;
+        const targetFPS = isMobile ? 45 : 60, frameDelay = 1000 / targetFPS;
+        let lastTime = 0;
+        
+        // 아이템 시스템
+        const ITEM_TYPES = { BOMB: 'bomb', ITEM1: 'item1', ITEM2: 'item2' };
+        
+        function createItem() {
+            const itemSize = isMobile ? 35 : 40;
+            const minY = 80, maxY = canvas.height - GROUND_HEIGHT - itemSize - 80;
+            const itemTypes = Object.values(ITEM_TYPES);
+            const randomType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+            items.push({ x: canvas.width, y: minY + Math.random() * (maxY - minY), width: itemSize, height: itemSize, type: randomType, collected: false });
+        }
+        
+        function updateItems() {
+            items.forEach(item => item.x -= gameSpeed);
+            items = items.filter(item => item.x > -item.width);
+            
+            itemTimer++;
+            if (itemTimer >= (isMobile ? 300 : 250)) {
+                if (Math.random() < 0.3) createItem();
+                itemTimer = 0;
+            }
+        }
+        
+        function checkItemCollisions() {
+            items.forEach((item, index) => {
+                if (item.collected) return;
+                if (bird.x + bird.width > item.x && bird.x < item.x + item.width && bird.y + bird.height > item.y && bird.y < item.y + item.height) {
+                    item.collected = true;
+                    handleItemCollection(item);
+                    items.splice(index, 1);
+                }
+            });
+        }
+        
+        function handleItemCollection(item) {
+            switch (item.type) {
+                case ITEM_TYPES.BOMB:
+                    applyScore(-10);
+                    showFloatingText('-10점', bird.x, bird.y, '#FF0000');
+                    break;
+                case ITEM_TYPES.ITEM1:
+                    applyScore(10);
+                    showFloatingText('+10점', bird.x, bird.y, '#00FF00');
+                    break;
+                case ITEM_TYPES.ITEM2:
+                    handleItem2Effect();
+                    break;
+            }
+        }
+        
+        function handleItem2Effect() {
+            if (Math.random() < 0.1) {
+                activateInvincibleShield();
+                showFloatingText('무적 실드 5초!', bird.x, bird.y, '#FF8C00');
+            } else {
+                const randomScore = Math.floor(Math.random() * 41) - 20;
+                applyScore(randomScore);
+                showFloatingText(`${randomScore > 0 ? '+' : ''}${randomScore}점`, bird.x, bird.y, randomScore >= 0 ? '#00FF00' : '#FF0000');
+            }
+        }
+        
+        function activateInvincibleShield() {
+            isInvincible = true;
+            invincibleTimer = Date.now();
+        }
+        
+        // 플로팅 텍스트
+        function showFloatingText(text, x, y, color) {
+            floatingTexts.push({ text, x: x + 30, y: y - 10, color, opacity: 1.0, timer: 0, duration: 120 });
+        }
+        
+        function updateFloatingTexts() {
+            floatingTexts.forEach(ft => { ft.timer++; ft.y -= 1; ft.opacity = Math.max(0, 1 - (ft.timer / ft.duration)); });
+            floatingTexts = floatingTexts.filter(ft => ft.timer < ft.duration);
+        }
+        
+        // 게임 핵심 함수들
+        function updateScore() { document.getElementById('score').textContent = `점수: ${score}`; }
+        function applyScore(points) { score = Math.max(0, score + points); updateScore(); }
+        function jump() { if (gameState === 'playing') bird.velocity = JUMP_POWER; }
+        function updateVisitorCounterVisibility() {
+            const counter = document.getElementById('visitorCounter');
+            gameState === 'playing' ? counter.classList.add('game-playing') : counter.classList.remove('game-playing');
+        }
+        
+        function createObstacle() {
+            const baseGap = isMobile ? 160 : 180;
+            const difficultyGap = Math.max(120, baseGap - (difficultyLevel * 4));
+            const gap = Math.random() < 0.7 ? difficultyGap : difficultyGap + 40 + (Math.random() * 40);
+            const minHeight = 60, maxHeight = canvas.height - Math.max(100, gap) - GROUND_HEIGHT - 60;
+            const topHeight = minHeight + Math.random() * (maxHeight - minHeight);
+            obstacles.push({ x: canvas.width, topHeight, bottomY: topHeight + Math.max(100, gap), bottomHeight: canvas.height - (topHeight + Math.max(100, gap)) - GROUND_HEIGHT, width: isMobile ? 40 : 50, passed: false });
+        }
+        
+        function updateObstacles() {
+            obstacles.forEach(obstacle => {
+                obstacle.x -= gameSpeed;
+                if (!obstacle.passed && obstacle.x + obstacle.width < bird.x) {
+                    obstacle.passed = true;
+                    score += 10;
+                    updateScore();
+                    if (score > 0 && score % 50 === 0 && score > lastDifficultyScore) {
+                        difficultyLevel++;
+                        lastDifficultyScore = score;
+                        gameSpeed += currentConfig.speedIncrease;
+                        obstacleInterval = Math.max(isMobile ? 80 : 50, obstacleInterval - 3);
+                    }
+                }
+            });
+            obstacles = obstacles.filter(obstacle => obstacle.x > -obstacle.width);
+            
+            obstacleTimer++;
+            const currentInterval = isFirstObstacle ? currentConfig.firstObstacleDelay : Math.max(40, obstacleInterval * (0.7 + Math.random() * 0.6));
+            if (obstacleTimer >= currentInterval) {
+                createObstacle();
+                obstacleTimer = 0;
+                isFirstObstacle = false;
+            }
+        }
+        
+        function updateBird() {
+            bird.velocity += GRAVITY;
+            bird.velocity = Math.max(MIN_VELOCITY, Math.min(MAX_VELOCITY, bird.velocity));
+            bird.y += bird.velocity;
+            bird.rotation = Math.min(bird.velocity * 0.06, Math.PI / 4);
+            if (bird.y <= 0) { bird.y = 0; bird.velocity = 0; }
+            if (bird.y + bird.height >= canvas.height - GROUND_HEIGHT) gameOver();
+        }
+        
+        function checkCollisions() {
+            if (isInvincible) return;
+            obstacles.forEach(obstacle => {
+                if (bird.x + bird.width - 3 > obstacle.x && bird.x + 3 < obstacle.x + obstacle.width) {
+                    if (bird.y + 3 < obstacle.topHeight || bird.y + bird.height - 3 > obstacle.bottomY) gameOver();
+                }
+            });
+        }
+        
+        function updateInvincible() {
+            if (isInvincible && Date.now() - invincibleTimer >= invincibleDuration) isInvincible = false;
+        }
+        
+        // 그리기 함수들
+        function drawBird() {
+            ctx.save();
+            ctx.translate(bird.x + bird.width/2, bird.y + bird.height/2);
+            ctx.rotate(bird.rotation);
+            
+            if (isInvincible) {
+                const shieldRadius = bird.width/2 + 8 + Math.sin(Date.now() * 0.01) * 3;
+                ctx.strokeStyle = 'rgba(255, 140, 0, 0.8)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(0, 0, shieldRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            if (gameImages.loaded.character && gameImages.character) {
+                ctx.drawImage(gameImages.character, -bird.width/2, -bird.height/2, bird.width, bird.height);
+            } else {
+                ctx.fillStyle = '#FF6B35';
+                ctx.beginPath();
+                ctx.arc(0, 0, bird.width/2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+        
+        function drawEnvironment() {
+            if (gameImages.loaded.background && gameImages.background) {
+                const bgMove = backgroundScroll * 0.3, bgOffset = bgMove % canvas.width;
+                ctx.drawImage(gameImages.background, -bgOffset, 0, canvas.width, canvas.height);
+                ctx.drawImage(gameImages.background, canvas.width - bgOffset, 0, canvas.width, canvas.height);
+            } else {
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height - GROUND_HEIGHT);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(1, '#98FB98');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height - GROUND_HEIGHT);
+            }
+            
+            const groundY = canvas.height - GROUND_HEIGHT;
+            if (gameImages.loaded.ground && gameImages.ground) {
+                const groundMove = backgroundScroll * 0.3, groundOffset = groundMove % canvas.width;
+                ctx.drawImage(gameImages.ground, -groundOffset, groundY, canvas.width, GROUND_HEIGHT);
+                ctx.drawImage(gameImages.ground, canvas.width - groundOffset, groundY, canvas.width, GROUND_HEIGHT);
+            } else {
+                ctx.fillStyle = '#90EE90';
+                ctx.fillRect(0, groundY, canvas.width, GROUND_HEIGHT);
+            }
+            
+            if (isInvincible) {
+                const remainingTime = Math.ceil((invincibleDuration - (Date.now() - invincibleTimer)) / 1000);
+                if (remainingTime > 0) {
+                    ctx.fillStyle = 'rgba(255, 140, 0, 0.9)';
+                    ctx.font = `${isMobile ? '20px' : '24px'} Arial`;
+                    ctx.fillText(`무적: ${remainingTime}초`, canvas.width - (isMobile ? 100 : 120), isMobile ? 50 : 60);
+                }
+            }
+        }
+        
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                if (gameImages.loaded.blockTop && gameImages.blockTop) {
+                    ctx.drawImage(gameImages.blockTop, obstacle.x, 0, obstacle.width, obstacle.topHeight);
+                    ctx.drawImage(gameImages.blockBottom, obstacle.x, obstacle.bottomY, obstacle.width, obstacle.bottomHeight);
+                } else {
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(obstacle.x, 0, obstacle.width, obstacle.topHeight);
+                    ctx.fillRect(obstacle.x, obstacle.bottomY, obstacle.width, obstacle.bottomHeight);
+                }
+            });
+        }
+        
+        function drawItems() {
+            items.forEach(item => {
+                if (gameImages.loaded[item.type] && gameImages[item.type]) {
+                    ctx.drawImage(gameImages[item.type], item.x, item.y, item.width, item.height);
+                } else {
+                    ctx.fillStyle = item.type === 'bomb' ? '#FF0000' : item.type === 'item1' ? '#FFA500' : '#0080FF';
+                    ctx.fillRect(item.x, item.y, item.width, item.height);
+                }
+            });
+        }
+        
+        function drawFloatingTexts() {
+            floatingTexts.forEach(ft => {
+                ctx.save();
+                ctx.globalAlpha = ft.opacity;
+                ctx.fillStyle = ft.color;
+                ctx.font = `${isMobile ? '16px' : '20px'} Arial`;
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.strokeText(ft.text, ft.x, ft.y);
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            });
+        }
+        
+        // 랭킹 시스템 (간소화)
+        async function checkTop10Eligibility(newScore) {
+            if (!window.firebaseDB) return false;
+            try {
+                const { collection, query, orderBy, limit, getDocs } = window.firestoreModules;
+                const snapshot = await getDocs(query(collection(window.firebaseDB, 'rankings'), orderBy('score', 'desc'), limit(10)));
+                const rankings = []; snapshot.forEach(doc => rankings.push(doc.data()));
+                return rankings.length < 10 || newScore > rankings[rankings.length - 1].score;
+            } catch (error) { return false; }
+        }
+        
+        // 상위 10위 랭킹 확인 모달
+        function showRankingConfirmModal() {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 3000;';
+                
+                const content = document.createElement('div');
+                content.style.cssText = 'background: white; padding: 30px; border-radius: 15px; text-align: center; color: #333; max-width: 90%;';
+                content.innerHTML = `
+                    <h2 style="color: #FFD700; margin-bottom: 20px;">🏆 축하합니다!</h2>
+                    <p style="margin-bottom: 20px; font-size: 18px;">상위 10위 이내 기록입니다!</p>
+                    <p style="margin-bottom: 30px; color: #666;">랭킹에 등록하시겠습니까?</p>
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <button id="confirmRanking" style="background: #4CAF50; color: white; padding: 15px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">랭킹 등록</button>
+                        <button id="skipRanking" style="background: #666; color: white; padding: 15px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">건너뛰기</button>
+                    </div>
+                `;
+                
+                modal.appendChild(content);
+                document.body.appendChild(modal);
+                
+                document.getElementById('confirmRanking').onclick = () => { document.body.removeChild(modal); resolve('register'); };
+                document.getElementById('skipRanking').onclick = () => { document.body.removeChild(modal); resolve('skip'); };
+            });
+        }
+        
+        // 게임 상태 관리
+        function startGame() {
+            gameState = 'playing';
+            score = 0; difficultyLevel = 1; lastDifficultyScore = 0; isFirstObstacle = true; isInvincible = false; invincibleTimer = 0;
+            currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+            gameSpeed = currentConfig.gameSpeed; obstacleInterval = currentConfig.obstacleInterval;
+            GRAVITY = currentConfig.gravity; JUMP_POWER = currentConfig.jumpPower; MAX_VELOCITY = currentConfig.maxVelocity; MIN_VELOCITY = currentConfig.minVelocity;
+            bird.x = isMobile ? canvas.width * 0.15 : 120; bird.y = canvas.height / 2; bird.width = currentConfig.birdSize; bird.height = currentConfig.birdSize; bird.velocity = 0; bird.rotation = 0;
+            obstacles = []; items = []; floatingTexts = []; obstacleTimer = 0; itemTimer = 0; backgroundScroll = 0;
+            updateScore(); updateVisitorCounterVisibility();
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+        }
+        
+        async function gameOver() {
+            gameState = 'gameOver';
+            updateVisitorCounterVisibility();
+            document.getElementById('finalScore').textContent = `최종 점수: ${score}`;
+            const isTop10 = await checkTop10Eligibility(score);
+            isTop10 ? document.getElementById('nameInputSection').classList.remove('hidden') : document.getElementById('nameInputSection').classList.add('hidden');
+            clearGameOverInputs();
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+        
+        async function restartGame() {
+            const isTop10 = await checkTop10Eligibility(score);
+            if (isTop10 && document.getElementById('nameInputSection').classList.contains('hidden')) {
+                const choice = await showRankingConfirmModal();
+                if (choice === 'register') { document.getElementById('nameInputSection').classList.remove('hidden'); return; }
+            }
+            startGame();
+        }
+        
+        async function showStartScreen() {
+            const isTop10 = await checkTop10Eligibility(score);
+            if (isTop10 && document.getElementById('nameInputSection').classList.contains('hidden')) {
+                const choice = await showRankingConfirmModal();
+                if (choice === 'register') { document.getElementById('nameInputSection').classList.remove('hidden'); return; }
+            }
+            gameState = 'start';
+            updateVisitorCounterVisibility();
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+        }
+        
+        // 게임 루프
+        function gameLoop(currentTime) {
+            if (currentTime - lastTime >= frameDelay) {
+                drawEnvironment();
+                if (gameState === 'playing') {
+                    backgroundScroll += gameSpeed * 0.3;
+                    updateBird(); updateObstacles(); updateItems(); updateInvincible(); updateFloatingTexts();
+                    checkCollisions(); checkItemCollisions();
+                    drawObstacles(); drawItems(); drawFloatingTexts(); drawBird();
+                }
+                lastTime = currentTime;
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 이벤트 리스너
+        document.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); jump(); } });
+        canvas.addEventListener('click', e => { e.preventDefault(); jump(); });
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); jump(); }, { passive: false });
+        window.addEventListener('resize', () => { setupCanvas(); currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop; });
+        
+        // 전역 함수 설정 및 초기화
+        window.startGame = startGame;
+        window.restartGame = restartGame;
+        window.showStartScreen = showStartScreen;
+        window.shareToKakao = shareToKakao;
+        window.shareViaWebAPI = shareViaWebAPI;
+        window.copyGameLink = copyGameLink;
+        window.downloadGameImage = downloadGameImage;
+        
+        function clearGameOverInputs() { document.getElementById('playerName').value = ''; document.getElementById('playerPin').value = ''; }
+        
+        checkWebShareSupport();
+        setTimeout(() => {
+            if (window.firebaseDB) {
+                loadAllTimeRecord(); updateConnectionStatus('online', isMobile ? '모바일 연결' : '데스크탑 연결');
+                updateVisitorCount(); loadVisitorCount();
+            } else {
+                updateConnectionStatus('offline', 'Firebase 오류');
+                document.getElementById('allTimeRecord').innerHTML = '🏆 역대 최고 기록: 연결 오류';
+            }
+        }, 1000);
+        
+        gameLoop();
+    </script>
+</body>
+</html>
