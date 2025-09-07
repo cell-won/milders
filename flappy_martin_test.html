@@ -461,6 +461,10 @@
             background: #4488ff;
         }
 
+	.item-particle.shield {
+	    background: #ff8c00;
+	}
+
         @keyframes particleExplosion {
             0% {
                 opacity: 1;
@@ -989,39 +993,61 @@
         // 밸런스 조정된 디바이스별 게임 설정
         const DEVICE_CONFIGS = {
             mobile: {
-                gameSpeed: 2.1,             // 1.9 → 2.1 (속도 증가)
+                gameSpeed: 2.9,
                 gravity: 0.22,
                 jumpPower: -5.2,
-                obstacleInterval: 160,      // 140 → 160 (장애물 간격 증가)
+                obstacleInterval: 160,
                 birdSize: 55,
                 maxVelocity: 7,
                 minVelocity: -7,
-                speedIncrease: 0.12,        // 0.15 → 0.12 (난이도 증가량 감소)
+                speedIncrease: 0.12,
                 obstacleVariation: 40,
                 gapVariation: 40,
-                firstObstacleDelay: 80,     // 75 → 80 (첫 장애물 딜레이 증가)
-                itemInterval: 200,          // 180 → 200 (아이템 생성 간격 증가)
-                itemProbability: 0.4        // 0.45 → 0.4 (아이템 확률 감소)
+                firstObstacleDelay: 80,
+                itemInterval: 200,
+                itemProbability: 0.4
             },
             desktop: {
-                gameSpeed: 2.4,             // 2.9 → 2.4 (속도 감소)
+                gameSpeed: 2.4,
                 gravity: 0.45,
                 jumpPower: -7.5,
-                obstacleInterval: 130,      // 90 → 130 (장애물 간격 크게 증가)
+                obstacleInterval: 130,
                 birdSize: 50,
                 maxVelocity: 11,
                 minVelocity: -11,
-                speedIncrease: 0.15,        // 0.19 → 0.15 (난이도 증가량 감소)
+                speedIncrease: 0.15,
                 obstacleVariation: 35,
                 gapVariation: 35,
-                firstObstacleDelay: 70,     // 50 → 70 (첫 장애물 딜레이 증가)
-                itemInterval: 180,          // 150 → 180 (아이템 생성 간격 증가)
-                itemProbability: 0.4        // 0.45 → 0.4 (아이템 확률 감소)
+                firstObstacleDelay: 70,
+                itemInterval: 180,
+                itemProbability: 0.4
             }
         };
 
-        // 아이템 타입 정의 (배열로 균등 분배)
-        const ITEM_TYPES = ['bomb', 'item1', 'item2'];
+        // 아이템 타입 및 확률 정의 (shield 추가)
+        const ITEM_TYPES = ['bomb', 'item1', 'item2', 'shield'];
+        const ITEM_PROBABILITIES = {
+            bomb: 0.3,    // 30%
+            item1: 0.3,   // 30%
+            item2: 0.3,   // 30%
+            shield: 0.1   // 10%
+        };
+
+        // 확률 기반 아이템 선택 함수
+        function selectRandomItem() {
+            const random = Math.random();
+            let cumulative = 0;
+            
+            for (const itemType of ITEM_TYPES) {
+                cumulative += ITEM_PROBABILITIES[itemType];
+                if (random < cumulative) {
+                    return itemType;
+                }
+            }
+            
+            // 혹시 모를 경우를 위한 기본값
+            return 'item1';
+        }
         
         // 게임 기본 설정
         const canvas = document.getElementById('gameCanvas');
@@ -1238,6 +1264,7 @@
             
             console.error('신기록 저장 최종 실패');
         }
+
 // 무적 실드 관리 함수들
         function activateInvulnerability() {
             isInvulnerable = true;
@@ -1356,9 +1383,8 @@
             // 화면에 너무 많은 아이템이 있으면 생성 안함
             if (items.length >= 4) return;
             
-            // 아이템 타입 균등 선택
-            const randomIndex = Math.floor(Math.random() * ITEM_TYPES.length);
-            const itemType = ITEM_TYPES[randomIndex];
+            // 확률 기반 아이템 선택 (3단계에서 정의한 함수 사용)
+            const itemType = selectRandomItem();
             
             const itemSize = isMobile ? 40 : 45;
             const minY = 80;
@@ -1462,9 +1488,28 @@
                     } else if (item.type === 'item2') {
                         ctx.fillStyle = '#4488FF';
                         ctx.strokeStyle = '#2266CC';
+                    } else if (item.type === 'shield') {
+                        // shield 아이템은 주황색 원형 (무적실드와 동일한 색상)
+                        ctx.fillStyle = 'rgba(255, 140, 0, 0.8)';
+                        ctx.strokeStyle = 'rgba(255, 100, 0, 1)';
+                        ctx.lineWidth = 4;
+                        
+                        // 원형으로 그리기
+                        ctx.beginPath();
+                        ctx.arc(item.x + item.width/2, item.y + item.height/2, item.width/2 - 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                        
+                        // 실드 심볼 그리기
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 18px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🛡️', item.x + item.width/2, item.y + item.height/2 + 6);
+                        ctx.restore();
+                        return; // 일반적인 사각형 그리기 건너뛰기
                     }
                     
-                    // 둥근 사각형 그리기
+                    // 일반 아이템들은 둥근 사각형 그리기
                     ctx.beginPath();
                     ctx.roundRect(item.x, item.y, item.width, item.height, 8);
                     ctx.fill();
@@ -1531,24 +1576,23 @@
                     break;
                     
                 case 'item2':
-                    // 미스터리: 90% 확률로 랜덤 점수, 10% 확률로 무적 실드
-                    if (Math.random() < 0.1) {
-                        // 10% 확률: 무적 실드 5초
-                        activateInvulnerability();
-                        showFloatingText(itemX, itemY, '무적!', 'shield');
-                        console.log('🛡️ 미스터리 아이템: 무적 실드 획득!');
+                    // 미스터리: 100% 확률로 -20~+20점 랜덤 (무적실드 제거됨)
+                    scoreChange = Math.floor(Math.random() * 41) - 20; // -20 ~ +20
+                    if (scoreChange >= 0) {
+                        score += scoreChange;
+                        showFloatingText(itemX, itemY, `+${scoreChange}`, 'positive');
                     } else {
-                        // 90% 확률: -20~+20점 랜덤
-                        scoreChange = Math.floor(Math.random() * 41) - 20; // -20 ~ +20
-                        if (scoreChange >= 0) {
-                            score += scoreChange;
-                            showFloatingText(itemX, itemY, `+${scoreChange}`, 'positive');
-                        } else {
-                            score = Math.max(0, score + scoreChange); // 음수 방지
-                            showFloatingText(itemX, itemY, `${scoreChange}`, 'negative');
-                        }
-                        console.log(`🎲 미스터리 아이템: ${scoreChange >= 0 ? '+' : ''}${scoreChange}점, 현재 점수:`, score);
+                        score = Math.max(0, score + scoreChange); // 음수 방지
+                        showFloatingText(itemX, itemY, `${scoreChange}`, 'negative');
                     }
+                    console.log(`🎲 미스터리 아이템: ${scoreChange >= 0 ? '+' : ''}${scoreChange}점, 현재 점수:`, score);
+                    break;
+                    
+                case 'shield':
+                    // 실드: 100% 확률로 무적 실드 5초
+                    activateInvulnerability();
+                    showFloatingText(itemX, itemY, '무적!', 'shield');
+                    console.log('🛡️ 실드 아이템: 무적 실드 획득!');
                     break;
             }
             
@@ -2014,7 +2058,7 @@
             document.getElementById('backupDisplay').innerHTML = '';
         }
         
-        // 이미지 관리 (아이템 이미지 추가)
+        // 이미지 관리 (shield 이미지 추가)
         const gameImages = {
             background: null,
             character: null,
@@ -2024,6 +2068,7 @@
             bomb: null,
             item1: null,
             item2: null,
+            shield: null, // shield 이미지 추가
             loaded: {
                 background: false,
                 character: false,
@@ -2032,7 +2077,8 @@
                 ground: false,
                 bomb: false,
                 item1: false,
-                item2: false
+                item2: false,
+                shield: false // shield 로딩 상태 추가
             }
         };
         
@@ -2052,7 +2098,7 @@
             img.src = filename;
         }
         
-        // 모든 이미지 로딩
+        // 모든 이미지 로딩 (shield.png 추가)
         loadGameImage('background', 'background.png');
         loadGameImage('character', 'martin.png');
         loadGameImage('blockTop', 'blocktop.png');
@@ -2061,6 +2107,7 @@
         loadGameImage('bomb', 'bomb.png');
         loadGameImage('item1', 'item1.png');
         loadGameImage('item2', 'item2.png');
+        loadGameImage('shield', 'shield.png'); // shield.png 로딩 추가
         
         // 캐릭터 설정
         const bird = {
