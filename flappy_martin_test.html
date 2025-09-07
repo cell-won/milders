@@ -46,17 +46,18 @@
             }
             
             .ui-overlay {
-                font-size: 24px;
+                font-size: 22px;
+                padding: 15px;
             }
             
             .game-title {
-                font-size: 42px;
-                margin-bottom: 15px;
+                font-size: 38px;
+                margin-bottom: 12px;
             }
             
             .all-time-record {
-                font-size: 16px;
-                margin-bottom: 25px;
+                font-size: 15px;
+                margin-bottom: 20px;
             }
             
             button {
@@ -74,7 +75,7 @@
             
             #rankingSection {
                 flex-direction: row;
-                gap: 30px;
+                gap: 25px;
             }
             
             #score {
@@ -87,6 +88,11 @@
                 font-size: 20px;
                 top: 70px;
                 left: 20px;
+            }
+
+            #startButtonImage {
+                max-width: 160px; /* 기존 200px에서 80%로 축소 */
+                margin: 15px;
             }
         }
 
@@ -126,8 +132,8 @@
             }
             
             .ui-overlay {
-                font-size: 16px;
-                padding: 15px 10px;
+                font-size: 15px;
+                padding: 12px 8px;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
                 position: fixed;
@@ -147,77 +153,78 @@
             }
             
             .game-title {
-                font-size: clamp(20px, 5.5vw, 28px);
-                margin-bottom: 8px;
+                font-size: clamp(18px, 5vw, 26px);
+                margin-bottom: 6px;
                 text-align: center;
             }
 
             .all-time-record {
-                font-size: clamp(12px, 3.2vw, 14px);
-                margin-bottom: 15px;
+                font-size: clamp(11px, 3vw, 13px);
+                margin-bottom: 12px;
                 text-align: center;
+                padding: 6px 12px;
             }
             
             button {
-                padding: 14px 20px;
-                font-size: 14px;
-                margin: 6px 4px;
-                min-height: 44px;
+                padding: 12px 18px;
+                font-size: 13px;
+                margin: 5px 3px;
+                min-height: 42px;
                 border-radius: 8px;
-                min-width: 100px;
+                min-width: 90px;
                 width: auto;
             }
             
             input, textarea {
-                padding: 14px;
-                font-size: 14px;
+                padding: 12px;
+                font-size: 13px;
                 width: calc(50% - 5px);
-                max-width: 140px;
-                margin: 6px 2px;
+                max-width: 130px;
+                margin: 5px 2px;
                 border-radius: 8px;
                 border: 2px solid #ccc;
             }
             
             #rankingSection {
                 flex-direction: column;
-                gap: 15px;
+                gap: 12px;
                 width: 100%;
                 align-items: center;
                 max-width: 100%;
             }
             
             #rankingList, #rankingControls {
-                width: calc(100% - 20px);
-                max-width: 320px;
+                width: calc(100% - 16px);
+                max-width: 300px;
                 margin: 0 auto;
-                padding: 15px;
-            }
-
-            #rankingControls {
                 padding: 12px;
             }
 
+            #rankingControls {
+                padding: 10px;
+            }
+
             #rankingControls h3 {
-                font-size: 16px;
-                margin-bottom: 8px;
+                font-size: 15px;
+                margin-bottom: 6px;
             }
 
             #rankingControls .input-row {
                 display: flex;
-                gap: 5px;
-                margin-bottom: 8px;
+                gap: 4px;
+                margin-bottom: 6px;
                 align-items: center;
             }
 
             #rankingControls button {
-                padding: 12px 16px;
-                font-size: 13px;
-                min-width: 80px;
+                padding: 10px 14px;
+                font-size: 12px;
+                min-width: 70px;
                 margin: 0;
             }
             
             #score {
-                font-size: clamp(18px, 4.5vw, 24px);
+                font-size: clamp(16px, 4vw, 22px);
                 position: fixed;
                 top: env(safe-area-inset-top, 15px);
                 left: 15px;
@@ -226,9 +233,9 @@
             }
 
             #shieldTimer {
-                font-size: clamp(14px, 3.5vw, 18px);
+                font-size: clamp(13px, 3.2vw, 17px);
                 position: fixed;
-                top: calc(env(safe-area-inset-top, 15px) + 35px);
+                top: calc(env(safe-area-inset-top, 15px) + 32px);
                 left: 15px;
                 z-index: 1000;
                 max-width: calc(100vw - 30px);
@@ -238,10 +245,15 @@
                 position: fixed;
                 top: env(safe-area-inset-top, 15px);
                 right: 15px;
-                font-size: 11px;
-                padding: 4px 8px;
+                font-size: 10px;
+                padding: 3px 6px;
                 z-index: 1000;
-                max-width: 120px;
+                max-width: 100px;
+            }
+
+            #startButtonImage {
+                max-width: 120px; /* 모바일에서도 80% 축소 (기존 150px 상당) */
+                margin: 10px;
             }
         }
 
@@ -317,7 +329,7 @@
         #rankingList, #rankingControls {
             background: rgba(255,255,255,0.95);
             color: #333;
-            padding: 20px;
+            padding: 18px;
             border-radius: 15px;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
@@ -326,10 +338,11 @@
         .rank-item {
             display: flex;
             justify-content: space-between;
-            padding: 12px 8px;
+            padding: 10px 6px;
             border-bottom: 1px solid #ddd;
             font-weight: bold;
             transition: all 0.3s ease;
+            font-size: 14px;
         }
 
         .rank-item:hover {
@@ -339,8 +352,8 @@
 
         .rank-item.top3 {
             background: linear-gradient(90deg, #ffd700, #ffed4e);
-            padding: 15px 10px;
-            margin: 8px 0;
+            padding: 12px 8px;
+            margin: 6px 0;
             border-radius: 8px;
             color: #333;
             border: none;
@@ -354,8 +367,8 @@
             text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
             z-index: 10;
             background: rgba(0,0,0,0.5);
-            padding: 8px 15px;
-            border-radius: 25px;
+            padding: 6px 12px;
+            border-radius: 20px;
             backdrop-filter: blur(5px);
         }
 
@@ -394,12 +407,10 @@
             cursor: pointer;
             transition: transform 0.3s ease;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-            max-width: 200px;
-            margin: 20px;
         }
 
         #startButtonImage:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
 
         .game-title {
@@ -416,8 +427,7 @@
             color: #FFD700;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
             border: 2px solid #FFD700;
-            padding: 8px 16px;
-            border-radius: 10px;
+            border-radius: 8px;
             background: rgba(255, 215, 0, 0.1);
             backdrop-filter: blur(5px);
             font-weight: bold;
@@ -425,8 +435,8 @@
 
         #connectionStatus {
             position: absolute;
-            padding: 6px 12px;
-            border-radius: 20px;
+            padding: 4px 8px;
+            border-radius: 15px;
             font-weight: bold;
             backdrop-filter: blur(5px);
         }
@@ -448,18 +458,18 @@
 
         .error-message {
             color: #f44336;
-            font-size: 14px;
-            margin: 10px 0;
-            padding: 10px;
+            font-size: 13px;
+            margin: 8px 0;
+            padding: 8px;
             background: rgba(244,67,54,0.1);
             border-radius: 5px;
         }
 
         .success-message {
             color: #4CAF50;
-            font-size: 14px;
-            margin: 10px 0;
-            padding: 10px;
+            font-size: 13px;
+            margin: 8px 0;
+            padding: 8px;
             background: rgba(76,175,80,0.1);
             border-radius: 5px;
         }
@@ -480,7 +490,7 @@
 
         .admin-content {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
             max-width: 90%;
             max-height: 80%;
@@ -489,11 +499,12 @@
         }
 
         .backup-item {
-            padding: 10px;
-            margin: 5px 0;
+            padding: 8px;
+            margin: 4px 0;
             background: rgba(0,0,0,0.05);
             border-radius: 5px;
             border-left: 4px solid #2196F3;
+            font-size: 14px;
         }
 
         /* 공지사항 모달 */
@@ -512,7 +523,7 @@
 
         .notice-content {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
             max-width: 90%;
             max-height: 80%;
@@ -522,18 +533,18 @@
         }
 
         .notice-title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #333;
             border-bottom: 2px solid #4CAF50;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
         .notice-body {
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             white-space: pre-wrap;
         }
 
@@ -541,31 +552,32 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
-            padding-top: 20px;
+            margin-top: 15px;
+            padding-top: 15px;
             border-top: 1px solid #ddd;
         }
 
         .notice-checkbox {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            gap: 6px;
+            font-size: 13px;
             color: #666;
         }
 
         /* 관리자 공지사항 관리 */
         .admin-tabs {
             display: flex;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border-bottom: 1px solid #ddd;
         }
 
         .admin-tab {
-            padding: 10px 20px;
+            padding: 8px 15px;
             cursor: pointer;
             border-bottom: 2px solid transparent;
             transition: all 0.3s ease;
+            font-size: 14px;
         }
 
         .admin-tab.active {
@@ -585,15 +597,16 @@
         .notice-form {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
         .notice-item {
-            padding: 15px;
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             position: relative;
+            font-size: 14px;
         }
 
         .notice-item.expired {
@@ -603,32 +616,32 @@
 
         .notice-item-title {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .notice-item-meta {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .notice-item-actions {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 8px;
+            right: 8px;
         }
 
         /* 방문자 카운터 */
         .visitor-counter {
             position: fixed;
-            bottom: 10px;
+            bottom: 8px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0,0,0,0.7);
             color: white;
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
             z-index: 1000;
             backdrop-filter: blur(5px);
             transition: opacity 0.3s ease;
@@ -655,7 +668,7 @@
 
         .rank-check-content {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
             max-width: 90%;
             color: #333;
@@ -664,21 +677,21 @@
         }
 
         .rank-check-title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #FFD700;
         }
 
         .rank-check-message {
-            font-size: 18px;
-            margin-bottom: 20px;
+            font-size: 16px;
+            margin-bottom: 15px;
             line-height: 1.5;
         }
 
         .rank-check-buttons {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
@@ -742,8 +755,11 @@
                 <button onclick="submitScore()">랭킹 등록</button>
                 <div id="submitMessage"></div>
             </div>
-            <button onclick="restartGame()">다시 시작</button>
-            <button onclick="showStartScreen()">메인 메뉴</button>
+            <!-- 게임 종료 버튼들 (랭킹 등록 중일 때는 숨김) -->
+            <div id="gameEndButtons">
+                <button onclick="restartGame()">다시 시작</button>
+                <button onclick="showStartScreen()">메인 메뉴</button>
+            </div>
         </div>
 
         <!-- 상위 10위 랭킹 확인 모달 -->
@@ -858,43 +874,43 @@
     </script>
 
 <script>
-        // 개선된 디바이스별 게임 설정 (장애물 빈도 1.2배 증가)
+        // 개선된 디바이스별 게임 설정 (아이템 생성 빈도 증가)
         const DEVICE_CONFIGS = {
             mobile: {
                 gameSpeed: 1.9,
                 gravity: 0.22,
                 jumpPower: -5.2,
-                obstacleInterval: 165,
+                obstacleInterval: 140,  // 장애물 간격 감소 (더 자주 생성)
                 birdSize: 55,
                 maxVelocity: 7,
                 minVelocity: -7,
                 speedIncrease: 0.15,
                 obstacleVariation: 40,
                 gapVariation: 40,
-                firstObstacleDelay: 75
+                firstObstacleDelay: 75,
+                itemInterval: 180,      // 아이템 생성 간격 (더 자주)
+                itemProbability: 0.45   // 아이템 생성 확률 증가 (45%)
             },
             desktop: {
                 gameSpeed: 2.9,
                 gravity: 0.45,
                 jumpPower: -7.5,
-                obstacleInterval: 110,
+                obstacleInterval: 90,   // 장애물 간격 감소 (더 자주 생성)
                 birdSize: 50,
                 maxVelocity: 11,
                 minVelocity: -11,
                 speedIncrease: 0.19,
                 obstacleVariation: 35,
                 gapVariation: 35,
-                firstObstacleDelay: 50
+                firstObstacleDelay: 50,
+                itemInterval: 150,      // 아이템 생성 간격 (더 자주)
+                itemProbability: 0.45   // 아이템 생성 확률 증가 (45%)
             }
         };
 
-        // 아이템 타입 정의
-        const ITEM_TYPES = {
-            BOMB: 'bomb',      // -10점 확정
-            ITEM1: 'item1',    // +10점 확정
-            ITEM2: 'item2'     // 90% 확률로 -20~+20점 랜덤, 10% 확률로 5초 무적 실드
-        };
-
+        // 아이템 타입 정의 (배열로 균등 분배)
+        const ITEM_TYPES = ['bomb', 'item1', 'item2'];
+        
         // 게임 기본 설정
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -916,10 +932,10 @@
         let invulnerabilityTimer = 0;
         let invulnerabilityDuration = 5000; // 5초
         
-        // 역대 최고 기록 변수
+        // 역대 최고 기록 변수 (기본값 설정)
         let allTimeRecord = {
             score: 0,
-            nickname: '기록 없음',
+            nickname: '아직 없음',
             device: 'unknown',
             date: ''
         };
@@ -972,7 +988,7 @@
             return Math.abs(hash).toString().slice(0, 6);
         }
 
-// 관리자 인증 함수
+        // 관리자 인증 함수
         async function adminLogin() {
             try {
                 const { signInWithEmailAndPassword } = window.authModules;
@@ -989,15 +1005,16 @@
             }
         }
 
-        // 역대 최고 기록 관리 함수들
+        // 수정된 역대 최고 기록 관리 함수들 (로드 실패 오류 해결)
         async function loadAllTimeRecord() {
             if (!window.firebaseDB) {
                 document.getElementById('allTimeRecord').textContent = '🏆 역대 최고 기록: 연결 필요';
+                console.log('Firebase 연결 없어서 역대 기록 로드 불가');
                 return;
             }
             
             try {
-                const { doc, getDoc } = window.firestoreModules;
+                const { doc, getDoc, setDoc } = window.firestoreModules;
                 const recordRef = doc(window.firebaseDB, 'all_time_record', 'global');
                 const recordDoc = await getDoc(recordRef);
                 
@@ -1007,12 +1024,33 @@
                     const deviceIcon = data.device === 'mobile' ? '📱' : '💻';
                     document.getElementById('allTimeRecord').textContent = 
                         `🏆 역대 최고 기록: ${data.nickname} ${deviceIcon} - ${data.score}점 (${data.date})`;
+                    console.log('역대 최고 기록 로드 성공:', data);
                 } else {
+                    // 문서가 없으면 기본 문서 생성
+                    console.log('역대 기록 문서 없음, 기본 문서 생성');
+                    const defaultRecord = {
+                        score: 0,
+                        nickname: '아직 없음',
+                        device: 'unknown',
+                        date: new Date().toLocaleDateString('ko-KR'),
+                        timestamp: Date.now()
+                    };
+                    
+                    await setDoc(recordRef, defaultRecord);
+                    allTimeRecord = defaultRecord;
                     document.getElementById('allTimeRecord').textContent = '🏆 역대 최고 기록: 아직 기록 없음';
+                    console.log('기본 역대 기록 문서 생성 완료');
                 }
             } catch (error) {
                 console.error('역대 최고 기록 로드 오류:', error);
                 document.getElementById('allTimeRecord').textContent = '🏆 역대 최고 기록: 로드 실패';
+                // 오류 발생해도 기본값 유지
+                allTimeRecord = {
+                    score: 0,
+                    nickname: '오류',
+                    device: 'unknown',
+                    date: ''
+                };
             }
         }
 
@@ -1036,13 +1074,13 @@
                 document.getElementById('allTimeRecord').textContent = 
                     `🏆 역대 최고 기록: ${nickname} ${deviceIcon} - ${newScore}점 (${newRecord.date})`;
                 
-                console.log('신기록 갱신:', newRecord);
+                console.log('신기록 갱신 성공:', newRecord);
             } catch (error) {
                 console.error('신기록 저장 오류:', error);
             }
         }
 
-        // 무적 실드 관리 함수들
+// 무적 실드 관리 함수들
         function activateInvulnerability() {
             isInvulnerable = true;
             invulnerabilityTimer = invulnerabilityDuration;
@@ -1069,23 +1107,71 @@
             console.log('무적 실드 종료');
         }
 
-        // 아이템 시스템 함수들
+        // 완전히 재구현된 아이템 시스템
         function createItem() {
-            const itemTypes = Object.values(ITEM_TYPES);
-            const randomType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+            // 화면에 너무 많은 아이템이 있으면 생성 안함
+            if (items.length >= 4) return;
             
-            const itemSize = isMobile ? 35 : 40;
-            const minY = 60;
-            const maxY = canvas.height - 120; // 바닥과 충분한 거리
+            // 아이템 타입 균등 선택
+            const randomIndex = Math.floor(Math.random() * ITEM_TYPES.length);
+            const itemType = ITEM_TYPES[randomIndex];
             
+            const itemSize = isMobile ? 40 : 45;
+            const minY = 80;
+            const maxY = canvas.height - 140; // 바닥과 충분한 거리
+            
+            // 새 아이템 위치
+            let newY = minY + Math.random() * (maxY - minY);
+            
+            // 기존 장애물과 겹치지 않는 위치 찾기
+            let attempts = 0;
+            let validPosition = false;
+            
+            while (!validPosition && attempts < 10) {
+                validPosition = true;
+                
+                // 모든 장애물과의 겹침 확인
+                for (let obstacle of obstacles) {
+                    const obstacleLeft = obstacle.x;
+                    const obstacleRight = obstacle.x + obstacle.width;
+                    const itemLeft = canvas.width;
+                    const itemRight = canvas.width + itemSize;
+                    
+                    // X축에서 겹치는지 확인 (아이템이 생성될 위치 고려)
+                    if (itemRight > obstacleLeft - 100 && itemLeft < obstacleRight + 100) {
+                        // Y축에서도 겹치는지 확인
+                        if ((newY < obstacle.topHeight + 30) || 
+                            (newY + itemSize > obstacle.bottomY - 30)) {
+                            validPosition = false;
+                            newY = minY + Math.random() * (maxY - minY);
+                            break;
+                        }
+                    }
+                }
+                
+                // 다른 아이템들과도 겹치지 않게
+                for (let item of items) {
+                    if (Math.abs(newY - item.y) < itemSize + 20) {
+                        validPosition = false;
+                        newY = minY + Math.random() * (maxY - minY);
+                        break;
+                    }
+                }
+                
+                attempts++;
+            }
+            
+            // 유효한 위치를 찾았거나 시도 횟수 초과시 아이템 생성
             items.push({
-                x: canvas.width,
-                y: minY + Math.random() * (maxY - minY),
+                x: canvas.width + 50, // 장애물보다 조금 뒤에 생성
+                y: newY,
                 width: itemSize,
                 height: itemSize,
-                type: randomType,
+                type: itemType,
                 collected: false
             });
+            
+            console.log(`아이템 생성: ${itemType} at Y:${Math.round(newY)}`);
         }
 
         function updateItems() {
@@ -1097,10 +1183,10 @@
             // 화면 밖으로 나간 아이템 제거
             items = items.filter(item => item.x > -item.width);
             
-            // 아이템 생성 타이머
+            // 아이템 생성 타이머 (빈도 증가)
             itemTimer++;
-            if (itemTimer >= (isMobile ? 300 : 250)) {
-                if (Math.random() < 0.3) { // 30% 확률로 생성
+            if (itemTimer >= currentConfig.itemInterval) {
+                if (Math.random() < currentConfig.itemProbability) {
                     createItem();
                 }
                 itemTimer = 0;
@@ -1111,7 +1197,7 @@
             items.forEach(item => {
                 if (item.collected) return;
                 
-                // 아이템 이미지가 로드되지 않은 경우 기본 도형으로 그리기
+                // 아이템 이미지가 로드된 경우
                 if (gameImages.loaded[item.type] && gameImages[item.type]) {
                     ctx.drawImage(
                         gameImages[item.type],
@@ -1119,49 +1205,56 @@
                         item.width, item.height
                     );
                 } else {
-                    // 기본 아이템 그리기
+                    // 기본 아이템 그리기 (이미지 로드 실패시)
                     ctx.save();
-                    if (item.type === ITEM_TYPES.BOMB) {
+                    
+                    // 아이템별 색상
+                    if (item.type === 'bomb') {
                         ctx.fillStyle = '#FF4444';
                         ctx.strokeStyle = '#AA0000';
-                    } else if (item.type === ITEM_TYPES.ITEM1) {
+                    } else if (item.type === 'item1') {
                         ctx.fillStyle = '#FF8800';
                         ctx.strokeStyle = '#CC6600';
-                    } else if (item.type === ITEM_TYPES.ITEM2) {
+                    } else if (item.type === 'item2') {
                         ctx.fillStyle = '#4488FF';
                         ctx.strokeStyle = '#2266CC';
                     }
                     
-                    ctx.fillRect(item.x, item.y, item.width, item.height);
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(item.x, item.y, item.width, item.height);
+                    // 둥근 사각형 그리기
+                    ctx.beginPath();
+                    ctx.roundRect(item.x, item.y, item.width, item.height, 8);
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
                     
-                    // 아이템 표시 (텍스트)
+                    // 아이템 표시 텍스트
                     ctx.fillStyle = 'white';
-                    ctx.font = 'bold 12px Arial';
+                    ctx.font = 'bold 16px Arial';
                     ctx.textAlign = 'center';
-                    const symbol = item.type === ITEM_TYPES.BOMB ? '💣' : 
-                                  item.type === ITEM_TYPES.ITEM1 ? '+' : '?';
-                    ctx.fillText(symbol, item.x + item.width/2, item.y + item.height/2 + 4);
+                    const symbol = item.type === 'bomb' ? '💣' : 
+                                  item.type === 'item1' ? '+10' : '?';
+                    ctx.fillText(symbol, item.x + item.width/2, item.y + item.height/2 + 6);
                     ctx.restore();
                 }
             });
         }
 
         function checkItemCollisions() {
-            const birdLeft = bird.x + 5;
-            const birdRight = bird.x + bird.width - 5;
-            const birdTop = bird.y + 5;
-            const birdBottom = bird.y + bird.height - 5;
+            const birdLeft = bird.x + 8;
+            const birdRight = bird.x + bird.width - 8;
+            const birdTop = bird.y + 8;
+            const birdBottom = bird.y + bird.height - 8;
             
             items.forEach(item => {
                 if (item.collected) return;
                 
-                if (birdRight > item.x && birdLeft < item.x + item.width &&
-                    birdBottom > item.y && birdTop < item.y + item.height) {
+                // 충돌 감지 범위를 조금 여유롭게
+                if (birdRight > item.x + 5 && birdLeft < item.x + item.width - 5 &&
+                    birdBottom > item.y + 5 && birdTop < item.y + item.height - 5) {
                     
                     item.collected = true;
                     handleItemCollection(item.type);
+                    console.log(`아이템 수집: ${item.type}`);
                 }
             });
             
@@ -1170,34 +1263,38 @@
         }
 
         function handleItemCollection(itemType) {
+            let scoreChange = 0;
+            
             switch (itemType) {
-                case ITEM_TYPES.BOMB:
+                case 'bomb':
                     // 폭탄: -10점 확정 (0점 이하로 떨어지지 않게)
-                    score = Math.max(0, score - 10);
-                    console.log('폭탄 아이템 수집: -10점');
+                    scoreChange = -10;
+                    score = Math.max(0, score + scoreChange);
+                    console.log('💣 폭탄 아이템: -10점, 현재 점수:', score);
                     break;
                     
-                case ITEM_TYPES.ITEM1:
+                case 'item1':
                     // 보너스: +10점 확정
-                    score += 10;
-                    console.log('보너스 아이템 수집: +10점');
+                    scoreChange = 10;
+                    score += scoreChange;
+                    console.log('⭐ 보너스 아이템: +10점, 현재 점수:', score);
                     break;
                     
-                case ITEM_TYPES.ITEM2:
+                case 'item2':
                     // 미스터리: 90% 확률로 랜덤 점수, 10% 확률로 무적 실드
                     if (Math.random() < 0.1) {
                         // 10% 확률: 무적 실드 5초
                         activateInvulnerability();
-                        console.log('미스터리 아이템: 무적 실드 획득!');
+                        console.log('🛡️ 미스터리 아이템: 무적 실드 획득!');
                     } else {
                         // 90% 확률: -20~+20점 랜덤
-                        const randomScore = Math.floor(Math.random() * 41) - 20; // -20 ~ +20
-                        if (randomScore >= 0) {
-                            score += randomScore;
+                        scoreChange = Math.floor(Math.random() * 41) - 20; // -20 ~ +20
+                        if (scoreChange >= 0) {
+                            score += scoreChange;
                         } else {
-                            score = Math.max(0, score + randomScore); // 음수 방지
+                            score = Math.max(0, score + scoreChange); // 음수 방지
                         }
-                        console.log(`미스터리 아이템: ${randomScore >= 0 ? '+' : ''}${randomScore}점`);
+                        console.log(`🎲 미스터리 아이템: ${scoreChange >= 0 ? '+' : ''}${scoreChange}점, 현재 점수:`, score);
                     }
                     break;
             }
@@ -1664,7 +1761,7 @@
             document.getElementById('backupDisplay').innerHTML = '';
         }
         
-        // 이미지 관리
+        // 이미지 관리 (아이템 이미지 추가)
         const gameImages = {
             background: null,
             character: null,
@@ -1702,6 +1799,7 @@
             img.src = filename;
         }
         
+        // 모든 이미지 로딩
         loadGameImage('background', 'background.png');
         loadGameImage('character', 'martin.png');
         loadGameImage('blockTop', 'blocktop.png');
@@ -1731,8 +1829,8 @@
         let lastTime = 0;
         let deltaTime = 0;
         const frameDelay = 1000 / targetFPS;
-        
-        // 게임 그리기 함수들
+
+// 게임 그리기 함수들
         function drawBird() {
             ctx.save();
             ctx.translate(bird.x + bird.width/2, bird.y + bird.height/2);
@@ -1830,7 +1928,7 @@
             ctx.fill();
         }
         
-        // 크게 개선된 장애물 생성 (최소 간격 유지, 최대 간격 크게 증가)
+        // 크게 개선된 장애물 생성
         function createObstacle() {
             const baseGap = isMobile ? 160 : 180;
             const difficultyGap = Math.max(120, baseGap - (difficultyLevel * 4));
@@ -1911,7 +2009,7 @@
             }
         }
         
-        // 개선된 장애물 업데이트 (더 빈번한 랜덤 간격)
+        // 개선된 장애물 업데이트
         function updateObstacles() {
             obstacles.forEach(obstacle => {
                 obstacle.x -= gameSpeed;
@@ -1921,10 +2019,11 @@
                     score += 10; // 10점 단위로 변경
                     updateScore();
                     
-                    if (score > 0 && score % 50 === 0) { // 50점마다 난이도 증가 (5개 장애물마다)
+                    if (score > 0 && score % 50 === 0) { // 50점마다 난이도 증가
                         difficultyLevel++;
                         gameSpeed += currentConfig.speedIncrease;
                         obstacleInterval = Math.max(isMobile ? 80 : 50, obstacleInterval - 3);
+                        console.log(`난이도 증가! 레벨: ${difficultyLevel}, 속도: ${gameSpeed.toFixed(1)}`);
                     }
                 }
             });
@@ -1987,7 +2086,7 @@
         }
         
         function gameLoop(currentTime) {
-            deltaTime = currentTime -lastTime;
+            deltaTime = currentTime - lastTime;
             
             if (deltaTime >= frameDelay) {
                 drawEnvironment();
@@ -2063,6 +2162,7 @@
                 showRankCheckModal();
             } else {
                 document.getElementById('nameInputSection').classList.add('hidden');
+                document.getElementById('gameEndButtons').classList.remove('hidden'); // 버튼 표시
                 clearGameOverInputs();
                 document.getElementById('gameOverScreen').classList.remove('hidden');
             }
@@ -2103,6 +2203,7 @@
         function proceedToRankingRegistration() {
             document.getElementById('rankCheckModal').classList.add('hidden');
             document.getElementById('nameInputSection').classList.remove('hidden');
+            document.getElementById('gameEndButtons').classList.add('hidden'); // 버튼 숨김
             clearGameOverInputs();
             document.getElementById('gameOverScreen').classList.remove('hidden');
         }
@@ -2110,6 +2211,7 @@
         function skipRankingRegistration() {
             document.getElementById('rankCheckModal').classList.add('hidden');
             document.getElementById('nameInputSection').classList.add('hidden');
+            document.getElementById('gameEndButtons').classList.remove('hidden'); // 버튼 표시
             clearGameOverInputs();
             document.getElementById('gameOverScreen').classList.remove('hidden');
         }
@@ -2174,6 +2276,7 @@
                 
                 messageEl.innerHTML = '<div class="success-message">랭킹 등록 완료!</div>';
                 document.getElementById('nameInputSection').classList.add('hidden');
+                document.getElementById('gameEndButtons').classList.remove('hidden'); // 등록 완료 후 버튼 표시
                 loadTop3Rankings();
                 
                 clearGameOverInputs();
@@ -2436,13 +2539,13 @@
             }, 100);
         });
         
-        // 초기화
+        // 초기화 및 게임 시작
         console.log(`Milders Flappy Martin 준비 완료! (${isMobile ? '모바일' : '데스크탑'})`);
         
         setTimeout(() => {
             if (window.firebaseDB) {
                 loadTop3Rankings();
-                loadAllTimeRecord(); // 역대 최고 기록 로드
+                loadAllTimeRecord(); // 역대 최고 기록 로드 (수정된 함수)
                 updateConnectionStatus('online', isMobile ? '모바일 연결' : '데스크탑 연결');
                 loadNotices(); // 공지사항 로드
                 updateVisitorCount(); // 방문자 수 업데이트
