@@ -94,6 +94,14 @@
                 max-width: 160px; /* 기존 200px에서 80%로 축소 */
                 margin: 15px;
             }
+
+            /* 관리자 모달 입력창 크기 확대 */
+            .notice-form input, .notice-form textarea {
+                width: 100% !important;
+                max-width: 500px !important;
+                padding: 15px !important;
+                font-size: 16px !important;
+            }
         }
 
         /* 모바일 최적화 */
@@ -255,6 +263,14 @@
                 max-width: 120px; /* 모바일에서도 80% 축소 (기존 150px 상당) */
                 margin: 10px;
             }
+
+            /* 모바일 관리자 모달 입력창 크기 확대 */
+            .notice-form input, .notice-form textarea {
+                width: calc(100% - 10px) !important;
+                max-width: 400px !important;
+                padding: 16px !important;
+                font-size: 14px !important;
+            }
         }
 
         #gameCanvas {
@@ -381,6 +397,102 @@
         @keyframes shieldPulse {
             0%, 100% { opacity: 0.8; }
             50% { opacity: 1; }
+        }
+
+        /* 플로팅 텍스트 애니메이션 CSS */
+        .floating-text {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 999;
+            animation: floatUp 1.5s ease-out forwards;
+        }
+
+        .floating-text.positive {
+            color: #ff4444; /* 증가 시 빨간색 */
+        }
+
+        .floating-text.negative {
+            color: #4444ff; /* 감소 시 파란색 */
+        }
+
+        .floating-text.shield {
+            color: #ff8c00; /* 무적실드 주황색 */
+            font-size: 20px;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0px) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-30px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-60px) scale(0.8);
+            }
+        }
+
+        /* 아이템 수집 파티클 효과 */
+        .item-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 998;
+            animation: particleExplosion 0.8s ease-out forwards;
+        }
+
+        .item-particle.bomb {
+            background: #ff4444;
+        }
+
+        .item-particle.item1 {
+            background: #ff8800;
+        }
+
+        .item-particle.item2 {
+            background: #4488ff;
+        }
+
+        @keyframes particleExplosion {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translateY(-40px);
+            }
+        }
+
+        /* 무적실드 강화된 시각 효과 */
+        .shield-effect {
+            position: absolute;
+            border: 4px solid rgba(255, 140, 0, 0.8);
+            border-radius: 50%;
+            animation: shieldGlow 0.3s ease-out;
+            pointer-events: none;
+            z-index: 997;
+        }
+
+        @keyframes shieldGlow {
+            0% {
+                transform: scale(0.5);
+                opacity: 1;
+                border-width: 8px;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+                border-width: 2px;
+            }
         }
 
         input[type="text"], input[type="password"], input[type="date"], textarea {
@@ -874,37 +986,37 @@
     </script>
 
 <script>
-        // 개선된 디바이스별 게임 설정 (아이템 생성 빈도 증가)
+        // 밸런스 조정된 디바이스별 게임 설정
         const DEVICE_CONFIGS = {
             mobile: {
-                gameSpeed: 1.9,
+                gameSpeed: 2.1,             // 1.9 → 2.1 (속도 증가)
                 gravity: 0.22,
                 jumpPower: -5.2,
-                obstacleInterval: 140,  // 장애물 간격 감소 (더 자주 생성)
+                obstacleInterval: 160,      // 140 → 160 (장애물 간격 증가)
                 birdSize: 55,
                 maxVelocity: 7,
                 minVelocity: -7,
-                speedIncrease: 0.15,
+                speedIncrease: 0.12,        // 0.15 → 0.12 (난이도 증가량 감소)
                 obstacleVariation: 40,
                 gapVariation: 40,
-                firstObstacleDelay: 75,
-                itemInterval: 180,      // 아이템 생성 간격 (더 자주)
-                itemProbability: 0.45   // 아이템 생성 확률 증가 (45%)
+                firstObstacleDelay: 80,     // 75 → 80 (첫 장애물 딜레이 증가)
+                itemInterval: 200,          // 180 → 200 (아이템 생성 간격 증가)
+                itemProbability: 0.4        // 0.45 → 0.4 (아이템 확률 감소)
             },
             desktop: {
-                gameSpeed: 2.9,
+                gameSpeed: 2.4,             // 2.9 → 2.4 (속도 감소)
                 gravity: 0.45,
                 jumpPower: -7.5,
-                obstacleInterval: 90,   // 장애물 간격 감소 (더 자주 생성)
+                obstacleInterval: 130,      // 90 → 130 (장애물 간격 크게 증가)
                 birdSize: 50,
                 maxVelocity: 11,
                 minVelocity: -11,
-                speedIncrease: 0.19,
+                speedIncrease: 0.15,        // 0.19 → 0.15 (난이도 증가량 감소)
                 obstacleVariation: 35,
                 gapVariation: 35,
-                firstObstacleDelay: 50,
-                itemInterval: 150,      // 아이템 생성 간격 (더 자주)
-                itemProbability: 0.45   // 아이템 생성 확률 증가 (45%)
+                firstObstacleDelay: 70,     // 50 → 70 (첫 장애물 딜레이 증가)
+                itemInterval: 180,          // 150 → 180 (아이템 생성 간격 증가)
+                itemProbability: 0.4        // 0.45 → 0.4 (아이템 확률 감소)
             }
         };
 
@@ -1005,86 +1117,135 @@
             }
         }
 
-        // 수정된 역대 최고 기록 관리 함수들 (로드 실패 오류 해결)
+        // 강화된 역대 최고 기록 관리 함수들
         async function loadAllTimeRecord() {
+            const maxRetries = 3;
+            let currentRetry = 0;
+            
             if (!window.firebaseDB) {
-                document.getElementById('allTimeRecord').textContent = '🏆 역대 최고 기록: 연결 필요';
-                console.log('Firebase 연결 없어서 역대 기록 로드 불가');
+                console.log('Firebase 연결 없음 - 역대 기록 로드 불가');
+                setDefaultRecord('연결 필요');
                 return;
             }
             
-            try {
-                const { doc, getDoc, setDoc } = window.firestoreModules;
-                const recordRef = doc(window.firebaseDB, 'all_time_record', 'global');
-                const recordDoc = await getDoc(recordRef);
-                
-                if (recordDoc.exists()) {
-                    const data = recordDoc.data();
-                    allTimeRecord = data;
-                    const deviceIcon = data.device === 'mobile' ? '📱' : '💻';
-                    document.getElementById('allTimeRecord').textContent = 
-                        `🏆 역대 최고 기록: ${data.nickname} ${deviceIcon} - ${data.score}점 (${data.date})`;
-                    console.log('역대 최고 기록 로드 성공:', data);
-                } else {
-                    // 문서가 없으면 기본 문서 생성
-                    console.log('역대 기록 문서 없음, 기본 문서 생성');
-                    const defaultRecord = {
-                        score: 0,
-                        nickname: '아직 없음',
-                        device: 'unknown',
-                        date: new Date().toLocaleDateString('ko-KR'),
-                        timestamp: Date.now()
-                    };
+            while (currentRetry < maxRetries) {
+                try {
+                    console.log(`역대 기록 로드 시도 ${currentRetry + 1}/${maxRetries}`);
                     
-                    await setDoc(recordRef, defaultRecord);
-                    allTimeRecord = defaultRecord;
-                    document.getElementById('allTimeRecord').textContent = '🏆 역대 최고 기록: 아직 기록 없음';
-                    console.log('기본 역대 기록 문서 생성 완료');
+                    const { doc, getDoc, setDoc } = window.firestoreModules;
+                    const recordRef = doc(window.firebaseDB, 'all_time_record', 'global');
+                    
+                    // 읽기 권한 테스트
+                    const recordDoc = await getDoc(recordRef);
+                    
+                    if (recordDoc.exists()) {
+                        const data = recordDoc.data();
+                        allTimeRecord = data;
+                        const deviceIcon = data.device === 'mobile' ? '📱' : '💻';
+                        document.getElementById('allTimeRecord').textContent = 
+                            `🏆 역대 최고 기록: ${data.nickname} ${deviceIcon} - ${data.score}점 (${data.date})`;
+                        console.log('역대 최고 기록 로드 성공:', data);
+                        return; // 성공시 함수 종료
+                    } else {
+                        // 문서가 없으면 기본 문서 생성 시도
+                        console.log('역대 기록 문서 없음, 기본 문서 생성 시도');
+                        await createDefaultRecord(recordRef, setDoc);
+                        return; // 성공시 함수 종료
+                    }
+                    
+                } catch (error) {
+                    console.error(`역대 기록 로드 시도 ${currentRetry + 1} 실패:`, error);
+                    currentRetry++;
+                    
+                    if (currentRetry < maxRetries) {
+                        console.log(`${1000 * currentRetry}ms 후 재시도...`);
+                        await new Promise(resolve => setTimeout(resolve, 1000 * currentRetry));
+                    }
                 }
-            } catch (error) {
-                console.error('역대 최고 기록 로드 오류:', error);
-                document.getElementById('allTimeRecord').textContent = '🏆 역대 최고 기록: 로드 실패';
-                // 오류 발생해도 기본값 유지
-                allTimeRecord = {
-                    score: 0,
-                    nickname: '오류',
-                    device: 'unknown',
-                    date: ''
-                };
             }
+            
+            // 모든 재시도 실패
+            console.error('역대 기록 로드 최종 실패 - 기본값 사용');
+            setDefaultRecord('로드 실패');
+        }
+
+        async function createDefaultRecord(recordRef, setDoc) {
+            const defaultRecord = {
+                score: 0,
+                nickname: '아직 없음',
+                device: 'unknown',
+                date: new Date().toLocaleDateString('ko-KR'),
+                timestamp: Date.now()
+            };
+            
+            try {
+                await setDoc(recordRef, defaultRecord);
+                allTimeRecord = defaultRecord;
+                document.getElementById('allTimeRecord').textContent = '🏆 역대 최고 기록: 아직 기록 없음';
+                console.log('기본 역대 기록 문서 생성 완료');
+            } catch (writeError) {
+                console.error('기본 문서 생성 실패:', writeError);
+                throw writeError; // 재시도를 위해 에러 재발생
+            }
+        }
+
+        function setDefaultRecord(reason) {
+            allTimeRecord = {
+                score: 0,
+                nickname: reason === '연결 필요' ? '연결 필요' : '오류',
+                device: 'unknown',
+                date: ''
+            };
+            document.getElementById('allTimeRecord').textContent = `🏆 역대 최고 기록: ${reason}`;
         }
 
         async function updateAllTimeRecord(newScore, nickname, device) {
             if (!window.firebaseDB || newScore <= allTimeRecord.score) return;
             
-            try {
-                const { doc, setDoc } = window.firestoreModules;
-                const newRecord = {
-                    score: newScore,
-                    nickname: nickname,
-                    device: device,
-                    date: new Date().toLocaleDateString('ko-KR'),
-                    timestamp: Date.now()
-                };
-                
-                await setDoc(doc(window.firebaseDB, 'all_time_record', 'global'), newRecord);
-                allTimeRecord = newRecord;
-                
-                const deviceIcon = device === 'mobile' ? '📱' : '💻';
-                document.getElementById('allTimeRecord').textContent = 
-                    `🏆 역대 최고 기록: ${nickname} ${deviceIcon} - ${newScore}점 (${newRecord.date})`;
-                
-                console.log('신기록 갱신 성공:', newRecord);
-            } catch (error) {
-                console.error('신기록 저장 오류:', error);
+            const maxRetries = 2;
+            let currentRetry = 0;
+            
+            while (currentRetry < maxRetries) {
+                try {
+                    const { doc, setDoc } = window.firestoreModules;
+                    const newRecord = {
+                        score: newScore,
+                        nickname: nickname,
+                        device: device,
+                        date: new Date().toLocaleDateString('ko-KR'),
+                        timestamp: Date.now()
+                    };
+                    
+                    await setDoc(doc(window.firebaseDB, 'all_time_record', 'global'), newRecord);
+                    allTimeRecord = newRecord;
+                    
+                    const deviceIcon = device === 'mobile' ? '📱' : '💻';
+                    document.getElementById('allTimeRecord').textContent = 
+                        `🏆 역대 최고 기록: ${nickname} ${deviceIcon} - ${newScore}점 (${newRecord.date})`;
+                    
+                    console.log('신기록 갱신 성공:', newRecord);
+                    return; // 성공시 함수 종료
+                    
+                } catch (error) {
+                    console.error(`신기록 저장 시도 ${currentRetry + 1} 실패:`, error);
+                    currentRetry++;
+                    
+                    if (currentRetry < maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
             }
+            
+            console.error('신기록 저장 최종 실패');
         }
-
 // 무적 실드 관리 함수들
         function activateInvulnerability() {
             isInvulnerable = true;
             invulnerabilityTimer = invulnerabilityDuration;
             document.getElementById('shieldTimer').classList.remove('hidden');
+            
+            // 무적실드 활성화 시각적 효과 강화
+            showShieldActivationEffect();
             console.log('무적 실드 활성화! 5초간 지속');
         }
 
@@ -1105,6 +1266,89 @@
             invulnerabilityTimer = 0;
             document.getElementById('shieldTimer').classList.add('hidden');
             console.log('무적 실드 종료');
+        }
+
+        // 새로운 시각적 효과 함수들
+        function showFloatingText(x, y, text, type) {
+            const canvas = document.getElementById('gameCanvas');
+            const rect = canvas.getBoundingClientRect();
+            
+            // 캔버스 좌표를 화면 좌표로 변환
+            const screenX = rect.left + (x * rect.width / canvas.width);
+            const screenY = rect.top + (y * rect.height / canvas.height);
+            
+            const floatingText = document.createElement('div');
+            floatingText.className = `floating-text ${type}`;
+            floatingText.textContent = text;
+            floatingText.style.left = screenX + 'px';
+            floatingText.style.top = screenY + 'px';
+            
+            document.body.appendChild(floatingText);
+            
+            // 1.5초 후 요소 제거
+            setTimeout(() => {
+                if (floatingText.parentNode) {
+                    floatingText.parentNode.removeChild(floatingText);
+                }
+            }, 1500);
+        }
+
+        function createItemParticles(x, y, itemType) {
+            const canvas = document.getElementById('gameCanvas');
+            const rect = canvas.getBoundingClientRect();
+            const particleCount = 6;
+            
+            // 캔버스 좌표를 화면 좌표로 변환
+            const screenX = rect.left + (x * rect.width / canvas.width);
+            const screenY = rect.top + (y * rect.height / canvas.height);
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = `item-particle ${itemType}`;
+                
+                // 랜덤한 방향으로 파티클 배치
+                const angle = (Math.PI * 2 * i) / particleCount;
+                const distance = 15 + Math.random() * 10;
+                const particleX = screenX + Math.cos(angle) * distance;
+                const particleY = screenY + Math.sin(angle) * distance;
+                
+                particle.style.left = particleX + 'px';
+                particle.style.top = particleY + 'px';
+                
+                document.body.appendChild(particle);
+                
+                // 0.8초 후 파티클 제거
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 800);
+            }
+        }
+
+        function showShieldActivationEffect() {
+            const canvas = document.getElementById('gameCanvas');
+            const rect = canvas.getBoundingClientRect();
+            
+            // 캐릭터 위치 계산 (캔버스 기준 → 화면 기준)
+            const birdScreenX = rect.left + ((bird.x + bird.width/2) * rect.width / canvas.width);
+            const birdScreenY = rect.top + ((bird.y + bird.height/2) * rect.height / canvas.height);
+            
+            const shieldEffect = document.createElement('div');
+            shieldEffect.className = 'shield-effect';
+            shieldEffect.style.left = (birdScreenX - 30) + 'px';
+            shieldEffect.style.top = (birdScreenY - 30) + 'px';
+            shieldEffect.style.width = '60px';
+            shieldEffect.style.height = '60px';
+            
+            document.body.appendChild(shieldEffect);
+            
+            // 0.3초 후 효과 제거
+            setTimeout(() => {
+                if (shieldEffect.parentNode) {
+                    shieldEffect.parentNode.removeChild(shieldEffect);
+                }
+            }, 300);
         }
 
         // 완전히 재구현된 아이템 시스템
@@ -1253,7 +1497,7 @@
                     birdBottom > item.y + 5 && birdTop < item.y + item.height - 5) {
                     
                     item.collected = true;
-                    handleItemCollection(item.type);
+                    handleItemCollection(item.type, item.x + item.width/2, item.y + item.height/2);
                     console.log(`아이템 수집: ${item.type}`);
                 }
             });
@@ -1262,14 +1506,19 @@
             items = items.filter(item => !item.collected);
         }
 
-        function handleItemCollection(itemType) {
+        function handleItemCollection(itemType, itemX, itemY) {
             let scoreChange = 0;
+            let oldScore = score;
+            
+            // 파티클 효과 생성
+            createItemParticles(itemX, itemY, itemType);
             
             switch (itemType) {
                 case 'bomb':
                     // 폭탄: -10점 확정 (0점 이하로 떨어지지 않게)
                     scoreChange = -10;
                     score = Math.max(0, score + scoreChange);
+                    showFloatingText(itemX, itemY, '-10', 'negative');
                     console.log('💣 폭탄 아이템: -10점, 현재 점수:', score);
                     break;
                     
@@ -1277,6 +1526,7 @@
                     // 보너스: +10점 확정
                     scoreChange = 10;
                     score += scoreChange;
+                    showFloatingText(itemX, itemY, '+10', 'positive');
                     console.log('⭐ 보너스 아이템: +10점, 현재 점수:', score);
                     break;
                     
@@ -1285,14 +1535,17 @@
                     if (Math.random() < 0.1) {
                         // 10% 확률: 무적 실드 5초
                         activateInvulnerability();
+                        showFloatingText(itemX, itemY, '무적!', 'shield');
                         console.log('🛡️ 미스터리 아이템: 무적 실드 획득!');
                     } else {
                         // 90% 확률: -20~+20점 랜덤
                         scoreChange = Math.floor(Math.random() * 41) - 20; // -20 ~ +20
                         if (scoreChange >= 0) {
                             score += scoreChange;
+                            showFloatingText(itemX, itemY, `+${scoreChange}`, 'positive');
                         } else {
                             score = Math.max(0, score + scoreChange); // 음수 방지
+                            showFloatingText(itemX, itemY, `${scoreChange}`, 'negative');
                         }
                         console.log(`🎲 미스터리 아이템: ${scoreChange >= 0 ? '+' : ''}${scoreChange}점, 현재 점수:`, score);
                     }
