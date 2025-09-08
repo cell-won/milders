@@ -161,7 +161,7 @@
             }
             
             .game-title {
-                font-size: clamp(32px, 9vw, 45px);
+                font-size: clamp(18px, 5vw, 26px);
                 margin-bottom: 6px;
                 text-align: center;
             }
@@ -825,7 +825,6 @@
         }
     </style>
 </head>
-
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas" width="900" height="700"></canvas>
@@ -862,7 +861,32 @@
         <!-- 게임오버 화면 -->
         <div id="gameOverScreen" class="ui-overlay hidden">
             <img src="gameover.png" alt="게임 오버" style="max-width: 250px; margin: 20px;">
-            <p id="finalScore">최종 점수: 0</p>
+            
+            <!-- 개선된 최종 점수 표시 -->
+            <div class="final-score-display">
+                <div class="final-score-label">최종 점수</div>
+                <div id="finalScore" class="final-score-number">0점</div>
+            </div>
+            
+            <!-- 소셜 공유 버튼들 -->
+            <div id="socialShareSection" class="social-share-section">
+                <div class="share-title">친구들에게 내 점수를 자랑하세요!</div>
+                <div class="share-buttons">
+                    <button class="share-btn kakao-btn" onclick="shareToKakao()">
+                        <span class="share-icon">💬</span>
+                        <span>카카오톡</span>
+                    </button>
+                    <button class="share-btn instagram-btn" onclick="shareToInstagram()">
+                        <span class="share-icon">📷</span>
+                        <span>인스타그램</span>
+                    </button>
+                    <button class="share-btn general-btn" onclick="shareGeneral()">
+                        <span class="share-icon">📤</span>
+                        <span>공유하기</span>
+                    </button>
+                </div>
+            </div>
+            
             <div id="nameInputSection" class="hidden">
                 <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="20" autocomplete="off">
                 <input type="password" id="playerPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
@@ -871,6 +895,7 @@
                 <button onclick="submitScore()">랭킹 등록</button>
                 <div id="submitMessage"></div>
             </div>
+            
             <!-- 게임 종료 버튼들 (랭킹 등록 중일 때는 숨김) -->
             <div id="gameEndButtons">
                 <button onclick="restartGame()">다시 시작</button>
@@ -959,6 +984,200 @@
         <span id="visitorCount">방문자: 로딩중...</span>
     </div>
 
+    <!-- 카카오 SDK 로드 -->
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+
+    <style>
+        /* 최종 점수 표시 스타일 */
+        .final-score-display {
+            text-align: center;
+            margin: 20px 0 25px 0;
+        }
+
+        .final-score-label {
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .final-score-number {
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.8);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            animation: scoreGlow 2s ease-in-out infinite alternate;
+            font-size: 48px;
+        }
+
+        @keyframes scoreGlow {
+            0% {
+                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+            }
+            100% {
+                filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+            }
+        }
+
+        /* 소셜 공유 섹션 스타일 */
+        .social-share-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .share-title {
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .share-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .share-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .kakao-btn:hover {
+            background: rgba(255, 235, 59, 0.2);
+            border-color: rgba(255, 235, 59, 0.6);
+        }
+
+        .instagram-btn:hover {
+            background: rgba(233, 30, 99, 0.2);
+            border-color: rgba(233, 30, 99, 0.6);
+        }
+
+        .general-btn:hover {
+            background: rgba(33, 150, 243, 0.2);
+            border-color: rgba(33, 150, 243, 0.6);
+        }
+
+        .share-icon {
+            display: inline-block;
+            margin-right: 6px;
+            font-size: 18px;
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            .final-score-label {
+                font-size: clamp(14px, 4vw, 18px);
+                margin-bottom: 6px;
+            }
+
+            .final-score-number {
+                font-size: clamp(36px, 12vw, 52px);
+            }
+
+            .social-share-section {
+                margin: 15px 0;
+                width: calc(100% - 20px);
+                max-width: 350px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .share-title {
+                font-size: clamp(12px, 3.5vw, 16px);
+                margin-bottom: 10px;
+            }
+
+            .share-buttons {
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .share-btn {
+                padding: 10px 14px;
+                font-size: 12px;
+                min-width: 85px;
+                margin: 2px;
+            }
+
+            .share-icon {
+                font-size: 16px;
+                margin-right: 4px;
+            }
+        }
+
+        /* 데스크톱 최적화 */
+        @media (min-width: 769px) {
+            .final-score-display {
+                margin: 25px 0 30px 0;
+            }
+
+            .final-score-label {
+                font-size: 22px;
+                margin-bottom: 10px;
+            }
+
+            .final-score-number {
+                font-size: 68px;
+            }
+
+            .social-share-section {
+                margin: 25px 0;
+            }
+
+            .share-title {
+                font-size: 18px;
+                margin-bottom: 15px;
+            }
+
+            .share-buttons {
+                gap: 15px;
+            }
+
+            .share-btn {
+                padding: 14px 24px;
+                font-size: 16px;
+                min-width: 130px;
+            }
+
+            .share-icon {
+                font-size: 20px;
+                margin-right: 8px;
+            }
+        }
+    </style>
 <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -993,10 +1212,10 @@
         // 밸런스 조정된 디바이스별 게임 설정
         const DEVICE_CONFIGS = {
             mobile: {
-                gameSpeed: 2.9,
+                gameSpeed: 2.1,
                 gravity: 0.22,
                 jumpPower: -5.2,
-                obstacleInterval: 50,
+                obstacleInterval: 160,
                 birdSize: 55,
                 maxVelocity: 7,
                 minVelocity: -7,
@@ -2410,7 +2629,7 @@
         }
         
         function startGame() {
-            console.log(`게임 시작! (${isMobile ? '모바일' : '데스크탑'} 모드)`);
+            console.log(`게임 시작! (${isMobile ? '모바일' : '데스크톱'} 모드)`);
             gameState = 'playing';
             score = 0;
             difficultyLevel = 1;
@@ -2450,11 +2669,17 @@
             document.getElementById('rankCheckModal').classList.add('hidden');
         }
         
+        // 게임오버 함수 수정 (공유 기능 대응)
         async function gameOver() {
             gameState = 'gameOver';
             deactivateInvulnerability(); // 무적 실드 해제
             updateVisitorCounterVisibility();
-            document.getElementById('finalScore').textContent = `최종 점수: ${score}`;
+            
+            // 최종 점수 표시 개선
+            document.getElementById('finalScore').textContent = `${score}점`;
+            
+            // 소셜 공유 섹션 표시
+            document.getElementById('socialShareSection').classList.remove('hidden');
             
             const isTop10 = await checkTop10Eligibility(score);
             
@@ -2504,6 +2729,7 @@
             document.getElementById('rankCheckModal').classList.add('hidden');
             document.getElementById('nameInputSection').classList.remove('hidden');
             document.getElementById('gameEndButtons').classList.add('hidden'); // 버튼 숨김
+            // 소셜 공유 섹션은 유지
             clearGameOverInputs();
             document.getElementById('gameOverScreen').classList.remove('hidden');
         }
@@ -2512,6 +2738,7 @@
             document.getElementById('rankCheckModal').classList.add('hidden');
             document.getElementById('nameInputSection').classList.add('hidden');
             document.getElementById('gameEndButtons').classList.remove('hidden'); // 버튼 표시
+            // 소셜 공유 섹션은 유지
             clearGameOverInputs();
             document.getElementById('gameOverScreen').classList.remove('hidden');
         }
@@ -2840,13 +3067,13 @@
         });
         
         // 초기화 및 게임 시작
-        console.log(`Milders Flappy Martin 준비 완료! (${isMobile ? '모바일' : '데스크탑'})`);
+        console.log(`Milders Flappy Martin 준비 완료! (${isMobile ? '모바일' : '데스크톱'})`);
         
         setTimeout(() => {
             if (window.firebaseDB) {
                 loadTop3Rankings();
                 loadAllTimeRecord(); // 역대 최고 기록 로드 (수정된 함수)
-                updateConnectionStatus('online', isMobile ? '모바일 연결' : '데스크탑 연결');
+                updateConnectionStatus('online', isMobile ? '모바일 연결' : '데스크톱 연결');
                 loadNotices(); // 공지사항 로드
                 updateVisitorCount(); // 방문자 수 업데이트
                 loadVisitorCount(); // 방문자 수 표시
@@ -2861,6 +3088,327 @@
         }, 1000);
         
         gameLoop();
+
+        // 5c단계: 소셜 공유 시스템 모듈
+        
+        // 카카오 SDK 초기화 확인
+        if (typeof Kakao !== 'undefined') {
+            try {
+                Kakao.init('40e318ae679d1f96dadf1f2deb3aae11');
+                console.log('카카오 SDK 초기화 완료');
+            } catch (error) {
+                console.error('카카오 SDK 초기화 실패:', error);
+            }
+        } else {
+            console.warn('카카오 SDK가 로드되지 않았습니다');
+        }
+
+        // 도메인별 링크 설정
+        function getGameUrl() {
+            const hostname = window.location.hostname;
+            if (hostname === 'cell-won.github.io') {
+                return 'https://cell-won.github.io/milders/flappy_martin.html';
+            } else if (hostname === 'm.site.naver.com') {
+                return 'https://m.site.naver.com/1Qf5J';
+            } else {
+                // 로컬 개발 환경이나 기타 도메인
+                return window.location.href;
+            }
+        }
+
+        // 공유 이미지 생성 함수 (Canvas 기반)
+        async function generateShareImage(playerScore, playerNickname = null) {
+            return new Promise((resolve) => {
+                const shareCanvas = document.createElement('canvas');
+                const shareCtx = shareCanvas.getContext('2d');
+                
+                // 이미지 크기 설정 (인스타그램 정사각형 비율)
+                shareCanvas.width = 1080;
+                shareCanvas.height = 1080;
+                
+                // 배경 그라데이션
+                const gradient = shareCtx.createLinearGradient(0, 0, 0, shareCanvas.height);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(0.5, '#98FB98');
+                gradient.addColorStop(1, '#90EE90');
+                shareCtx.fillStyle = gradient;
+                shareCtx.fillRect(0, 0, shareCanvas.width, shareCanvas.height);
+                
+                // 패턴 배경 추가
+                shareCtx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                for (let i = 0; i < 20; i++) {
+                    for (let j = 0; j < 20; j++) {
+                        if ((i + j) % 2 === 0) {
+                            shareCtx.fillRect(i * 54, j * 54, 27, 27);
+                        }
+                    }
+                }
+                
+                // 게임 제목
+                shareCtx.fillStyle = '#FFD700';
+                shareCtx.strokeStyle = '#FF8C00';
+                shareCtx.lineWidth = 8;
+                shareCtx.font = 'bold 80px Arial';
+                shareCtx.textAlign = 'center';
+                shareCtx.strokeText('Milders Flappy Martin', shareCanvas.width / 2, 150);
+                shareCtx.fillText('Milders Flappy Martin', shareCanvas.width / 2, 150);
+                
+                // 점수 배경 원형
+                shareCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                shareCtx.beginPath();
+                shareCtx.arc(shareCanvas.width / 2, shareCanvas.height / 2, 200, 0, Math.PI * 2);
+                shareCtx.fill();
+                
+                // 점수 테두리
+                shareCtx.strokeStyle = '#FFD700';
+                shareCtx.lineWidth = 12;
+                shareCtx.beginPath();
+                shareCtx.arc(shareCanvas.width / 2, shareCanvas.height / 2, 200, 0, Math.PI * 2);
+                shareCtx.stroke();
+                
+                // 점수 텍스트
+                shareCtx.fillStyle = '#FFD700';
+                shareCtx.font = 'bold 120px Arial';
+                shareCtx.textAlign = 'center';
+                shareCtx.fillText(`${playerScore}점`, shareCanvas.width / 2, shareCanvas.height / 2 + 20);
+                
+                // 닉네임 표시 (있는 경우)
+                if (playerNickname) {
+                    shareCtx.fillStyle = '#FFFFFF';
+                    shareCtx.strokeStyle = '#000000';
+                    shareCtx.lineWidth = 4;
+                    shareCtx.font = 'bold 50px Arial';
+                    shareCtx.strokeText(`플레이어: ${playerNickname}`, shareCanvas.width / 2, shareCanvas.height / 2 + 120);
+                    shareCtx.fillText(`플레이어: ${playerNickname}`, shareCanvas.width / 2, shareCanvas.height / 2 + 120);
+                }
+                
+                // 날짜
+                const today = new Date().toLocaleDateString('ko-KR');
+                shareCtx.fillStyle = '#FFFFFF';
+                shareCtx.strokeStyle = '#000000';
+                shareCtx.lineWidth = 3;
+                shareCtx.font = 'bold 40px Arial';
+                shareCtx.strokeText(today, shareCanvas.width / 2, shareCanvas.height - 200);
+                shareCtx.fillText(today, shareCanvas.width / 2, shareCanvas.height - 200);
+                
+                // 하단 메시지
+                shareCtx.fillStyle = '#FFFFFF';
+                shareCtx.strokeStyle = '#000000';
+                shareCtx.lineWidth = 3;
+                shareCtx.font = 'bold 35px Arial';
+                shareCtx.strokeText('나도 도전해보세요!', shareCanvas.width / 2, shareCanvas.height - 100);
+                shareCtx.fillText('나도 도전해보세요!', shareCanvas.width / 2, shareCanvas.height - 100);
+                
+                // 캐릭터 이미지 추가 (있는 경우)
+                if (typeof gameImages !== 'undefined' && gameImages.loaded.character && gameImages.character) {
+                    shareCtx.drawImage(gameImages.character, 100, 300, 150, 150);
+                    shareCtx.drawImage(gameImages.character, shareCanvas.width - 250, 300, 150, 150);
+                }
+                
+                // Canvas를 Blob으로 변환
+                shareCanvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/png', 0.9);
+            });
+        }
+
+        // 공유 메시지 생성 함수
+        function generateShareMessage(playerScore, playerNickname = null) {
+            const messages = [
+                `방금 Milders Flappy Martin에서 ${playerScore}점을 기록했어요!`,
+                `플래피 버드 게임에서 ${playerScore}점 달성! 여러분도 도전해보세요!`,
+                `${playerScore}점 기록 완료! 이 점수 깰 수 있나요?`,
+                `Milders Flappy Martin 게임 결과: ${playerScore}점!`
+            ];
+            
+            let baseMessage = messages[Math.floor(Math.random() * messages.length)];
+            
+            if (playerNickname) {
+                baseMessage = `${playerNickname}님이 ` + baseMessage;
+            }
+            
+            return baseMessage + '\n\n🎮 지금 바로 플레이하기: ' + getGameUrl();
+        }
+
+        // 카카오톡 공유 함수
+        function shareToKakao() {
+            if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
+                alert('카카오 SDK가 초기화되지 않았습니다.');
+                return;
+            }
+            
+            try {
+                const playerNickname = document.getElementById('playerName').value.trim() || null;
+                const shareMessage = generateShareMessage(score, playerNickname);
+                const gameUrl = getGameUrl();
+                
+                Kakao.Share.sendDefault({
+                    objectType: 'feed',
+                    content: {
+                        title: 'Milders Flappy Martin',
+                        description: shareMessage,
+                        imageUrl: 'https://cell-won.github.io/milders/martin.png', // 기본 이미지 URL
+                        link: {
+                            mobileWebUrl: gameUrl,
+                            webUrl: gameUrl,
+                        },
+                    },
+                    buttons: [
+                        {
+                            title: '게임 플레이하기',
+                            link: {
+                                mobileWebUrl: gameUrl,
+                                webUrl: gameUrl,
+                            },
+                        },
+                    ],
+                    success: function(response) {
+                        console.log('카카오톡 공유 성공:', response);
+                    },
+                    fail: function(error) {
+                        console.error('카카오톡 공유 실패:', error);
+                        alert('카카오톡 공유에 실패했습니다.');
+                    },
+                });
+            } catch (error) {
+                console.error('카카오톡 공유 오류:', error);
+                alert('카카오톡 공유 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 인스타그램 공유 함수 (이미지 다운로드 방식)
+        async function shareToInstagram() {
+            try {
+                const playerNickname = document.getElementById('playerName').value.trim() || null;
+                const shareMessage = generateShareMessage(score, playerNickname);
+                
+                // 공유 이미지 생성
+                const imageBlob = await generateShareImage(score, playerNickname);
+                
+                // Web Share API 지원 확인
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([imageBlob], 'flappy-martin-score.png', { type: 'image/png' })] })) {
+                    const file = new File([imageBlob], 'flappy-martin-score.png', { type: 'image/png' });
+                    
+                    try {
+                        await navigator.share({
+                            title: 'Milders Flappy Martin 점수 공유',
+                            text: shareMessage,
+                            files: [file]
+                        });
+                        console.log('인스타그램 공유 성공');
+                    } catch (shareError) {
+                        if (shareError.name !== 'AbortError') {
+                            console.error('Web Share API 공유 실패:', shareError);
+                            fallbackImageDownload(imageBlob, shareMessage);
+                        }
+                    }
+                } else {
+                    // Web Share API 미지원시 이미지 다운로드
+                    fallbackImageDownload(imageBlob, shareMessage);
+                }
+            } catch (error) {
+                console.error('인스타그램 공유 오류:', error);
+                alert('이미지 생성 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 이미지 다운로드 대체 방법
+        function fallbackImageDownload(imageBlob, shareMessage) {
+            const url = URL.createObjectURL(imageBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `flappy-martin-${score}점-${new Date().toISOString().split('T')[0]}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            // 클립보드에 텍스트 복사 시도
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareMessage).then(() => {
+                    alert('이미지가 다운로드되었고, 공유 텍스트가 클립보드에 복사되었습니다!\n인스타그램 스토리에 이미지를 업로드해주세요.');
+                }).catch(() => {
+                    alert('이미지가 다운로드되었습니다!\n인스타그램 스토리에 업로드해주세요.\n\n공유 텍스트:\n' + shareMessage);
+                });
+            } else {
+                alert('이미지가 다운로드되었습니다!\n인스타그램 스토리에 업로드해주세요.\n\n공유 텍스트:\n' + shareMessage);
+            }
+        }
+
+        // 일반 공유 함수 (Web Share API)
+        async function shareGeneral() {
+            const playerNickname = document.getElementById('playerName').value.trim() || null;
+            const shareMessage = generateShareMessage(score, playerNickname);
+            const gameUrl = getGameUrl();
+            
+            // Web Share API 지원 확인
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Milders Flappy Martin',
+                        text: shareMessage,
+                        url: gameUrl
+                    });
+                    console.log('일반 공유 성공');
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('일반 공유 실패:', error);
+                        fallbackTextShare(shareMessage);
+                    }
+                }
+            } else {
+                // Web Share API 미지원시 클립보드 복사
+                fallbackTextShare(shareMessage);
+            }
+        }
+
+        // 클립보드 복사 대체 방법
+        function fallbackTextShare(shareMessage) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareMessage).then(() => {
+                    alert('공유 텍스트가 클립보드에 복사되었습니다!\n원하는 곳에 붙여넣기 해주세요.');
+                }).catch(() => {
+                    promptTextShare(shareMessage);
+                });
+            } else {
+                promptTextShare(shareMessage);
+            }
+        }
+
+        // 텍스트 선택 대체 방법
+        function promptTextShare(shareMessage) {
+            const textArea = document.createElement('textarea');
+            textArea.value = shareMessage;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('공유 텍스트가 복사되었습니다!\n원하는 곳에 붙여넣기 해주세요.');
+            } catch (err) {
+                alert('다음 텍스트를 복사해서 공유해주세요:\n\n' + shareMessage);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // 공유 기능 초기화 (게임오버시 호출)
+        function initializeSocialShare() {
+            // 공유 버튼들이 표시될 때 실행할 초기화 코드
+            console.log('소셜 공유 기능 초기화 완료');
+        }
+
+        // 전역 함수로 export (HTML onclick에서 사용)
+        window.shareToKakao = shareToKakao;
+        window.shareToInstagram = shareToInstagram;
+        window.shareGeneral = shareGeneral;
+
+        console.log('5c단계: 소셜 공유 시스템 모듈 로드 완료');
+
     </script>
 </body>
 </html>
