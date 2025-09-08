@@ -3087,7 +3087,7 @@
             }
         }, 1000);
         
-        gameLoop();
+     gameLoop();
 
         // 5c단계: 소셜 공유 시스템 모듈
         
@@ -3116,99 +3116,119 @@
             }
         }
 
-        // 공유 이미지 생성 함수 (Canvas 기반)
+        // 공유 이미지 생성 함수 (Canvas 기반) - 개선된 버전
         async function generateShareImage(playerScore, playerNickname = null) {
             return new Promise((resolve) => {
-                const shareCanvas = document.createElement('canvas');
-                const shareCtx = shareCanvas.getContext('2d');
-                
-                // 이미지 크기 설정 (인스타그램 정사각형 비율)
-                shareCanvas.width = 1080;
-                shareCanvas.height = 1080;
-                
-                // 배경 그라데이션
-                const gradient = shareCtx.createLinearGradient(0, 0, 0, shareCanvas.height);
-                gradient.addColorStop(0, '#87CEEB');
-                gradient.addColorStop(0.5, '#98FB98');
-                gradient.addColorStop(1, '#90EE90');
-                shareCtx.fillStyle = gradient;
-                shareCtx.fillRect(0, 0, shareCanvas.width, shareCanvas.height);
-                
-                // 패턴 배경 추가
-                shareCtx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-                for (let i = 0; i < 20; i++) {
-                    for (let j = 0; j < 20; j++) {
-                        if ((i + j) % 2 === 0) {
-                            shareCtx.fillRect(i * 54, j * 54, 27, 27);
+                try {
+                    const shareCanvas = document.createElement('canvas');
+                    const shareCtx = shareCanvas.getContext('2d');
+                    
+                    // 이미지 크기 설정 (인스타그램 정사각형 비율)
+                    shareCanvas.width = 1080;
+                    shareCanvas.height = 1080;
+                    
+                    console.log('Canvas 생성 완료:', shareCanvas.width, 'x', shareCanvas.height);
+                    
+                    // 배경 그라데이션
+                    const gradient = shareCtx.createLinearGradient(0, 0, 0, shareCanvas.height);
+                    gradient.addColorStop(0, '#87CEEB');
+                    gradient.addColorStop(0.5, '#98FB98');
+                    gradient.addColorStop(1, '#90EE90');
+                    shareCtx.fillStyle = gradient;
+                    shareCtx.fillRect(0, 0, shareCanvas.width, shareCanvas.height);
+                    
+                    // 패턴 배경 추가
+                    shareCtx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                    for (let i = 0; i < 20; i++) {
+                        for (let j = 0; j < 20; j++) {
+                            if ((i + j) % 2 === 0) {
+                                shareCtx.fillRect(i * 54, j * 54, 27, 27);
+                            }
                         }
                     }
-                }
-                
-                // 게임 제목
-                shareCtx.fillStyle = '#FFD700';
-                shareCtx.strokeStyle = '#FF8C00';
-                shareCtx.lineWidth = 8;
-                shareCtx.font = 'bold 80px Arial';
-                shareCtx.textAlign = 'center';
-                shareCtx.strokeText('Milders Flappy Martin', shareCanvas.width / 2, 150);
-                shareCtx.fillText('Milders Flappy Martin', shareCanvas.width / 2, 150);
-                
-                // 점수 배경 원형
-                shareCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-                shareCtx.beginPath();
-                shareCtx.arc(shareCanvas.width / 2, shareCanvas.height / 2, 200, 0, Math.PI * 2);
-                shareCtx.fill();
-                
-                // 점수 테두리
-                shareCtx.strokeStyle = '#FFD700';
-                shareCtx.lineWidth = 12;
-                shareCtx.beginPath();
-                shareCtx.arc(shareCanvas.width / 2, shareCanvas.height / 2, 200, 0, Math.PI * 2);
-                shareCtx.stroke();
-                
-                // 점수 텍스트
-                shareCtx.fillStyle = '#FFD700';
-                shareCtx.font = 'bold 120px Arial';
-                shareCtx.textAlign = 'center';
-                shareCtx.fillText(`${playerScore}점`, shareCanvas.width / 2, shareCanvas.height / 2 + 20);
-                
-                // 닉네임 표시 (있는 경우)
-                if (playerNickname) {
+                    
+                    // 게임 제목
+                    shareCtx.fillStyle = '#FFD700';
+                    shareCtx.strokeStyle = '#FF8C00';
+                    shareCtx.lineWidth = 8;
+                    shareCtx.font = 'bold 80px Arial';
+                    shareCtx.textAlign = 'center';
+                    shareCtx.strokeText('Milders Flappy Martin', shareCanvas.width / 2, 150);
+                    shareCtx.fillText('Milders Flappy Martin', shareCanvas.width / 2, 150);
+                    
+                    // 점수 배경 원형
+                    shareCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    shareCtx.beginPath();
+                    shareCtx.arc(shareCanvas.width / 2, shareCanvas.height / 2, 200, 0, Math.PI * 2);
+                    shareCtx.fill();
+                    
+                    // 점수 테두리
+                    shareCtx.strokeStyle = '#FFD700';
+                    shareCtx.lineWidth = 12;
+                    shareCtx.beginPath();
+                    shareCtx.arc(shareCanvas.width / 2, shareCanvas.height / 2, 200, 0, Math.PI * 2);
+                    shareCtx.stroke();
+                    
+                    // 점수 텍스트
+                    shareCtx.fillStyle = '#FFD700';
+                    shareCtx.font = 'bold 120px Arial';
+                    shareCtx.textAlign = 'center';
+                    shareCtx.fillText(`${playerScore}점`, shareCanvas.width / 2, shareCanvas.height / 2 + 20);
+                    
+                    // 닉네임 표시 (있는 경우)
+                    if (playerNickname) {
+                        shareCtx.fillStyle = '#FFFFFF';
+                        shareCtx.strokeStyle = '#000000';
+                        shareCtx.lineWidth = 4;
+                        shareCtx.font = 'bold 50px Arial';
+                        shareCtx.strokeText(`플레이어: ${playerNickname}`, shareCanvas.width / 2, shareCanvas.height / 2 + 120);
+                        shareCtx.fillText(`플레이어: ${playerNickname}`, shareCanvas.width / 2, shareCanvas.height / 2 + 120);
+                    }
+                    
+                    // 날짜
+                    const today = new Date().toLocaleDateString('ko-KR');
                     shareCtx.fillStyle = '#FFFFFF';
                     shareCtx.strokeStyle = '#000000';
-                    shareCtx.lineWidth = 4;
-                    shareCtx.font = 'bold 50px Arial';
-                    shareCtx.strokeText(`플레이어: ${playerNickname}`, shareCanvas.width / 2, shareCanvas.height / 2 + 120);
-                    shareCtx.fillText(`플레이어: ${playerNickname}`, shareCanvas.width / 2, shareCanvas.height / 2 + 120);
+                    shareCtx.lineWidth = 3;
+                    shareCtx.font = 'bold 40px Arial';
+                    shareCtx.strokeText(today, shareCanvas.width / 2, shareCanvas.height - 200);
+                    shareCtx.fillText(today, shareCanvas.width / 2, shareCanvas.height - 200);
+                    
+                    // 하단 메시지
+                    shareCtx.fillStyle = '#FFFFFF';
+                    shareCtx.strokeStyle = '#000000';
+                    shareCtx.lineWidth = 3;
+                    shareCtx.font = 'bold 35px Arial';
+                    shareCtx.strokeText('나도 도전해보세요!', shareCanvas.width / 2, shareCanvas.height - 100);
+                    shareCtx.fillText('나도 도전해보세요!', shareCanvas.width / 2, shareCanvas.height - 100);
+                    
+                    // 캐릭터 이미지 추가 (있는 경우)
+                    if (typeof gameImages !== 'undefined' && gameImages.loaded && gameImages.loaded.character && gameImages.character) {
+                        try {
+                            shareCtx.drawImage(gameImages.character, 100, 300, 150, 150);
+                            shareCtx.drawImage(gameImages.character, shareCanvas.width - 250, 300, 150, 150);
+                        } catch (imgError) {
+                            console.log('캐릭터 이미지 그리기 실패, 건너뜀:', imgError);
+                        }
+                    }
+                    
+                    console.log('Canvas 그리기 완료, Blob 변환 시작');
+                    
+                    // Canvas를 Blob으로 변환
+                    shareCanvas.toBlob((blob) => {
+                        if (blob) {
+                            console.log('Blob 생성 성공:', blob.size, 'bytes');
+                            resolve(blob);
+                        } else {
+                            console.error('Blob 생성 실패');
+                            resolve(null);
+                        }
+                    }, 'image/png', 0.9);
+                    
+                } catch (error) {
+                    console.error('Canvas 생성 중 오류:', error);
+                    resolve(null);
                 }
-                
-                // 날짜
-                const today = new Date().toLocaleDateString('ko-KR');
-                shareCtx.fillStyle = '#FFFFFF';
-                shareCtx.strokeStyle = '#000000';
-                shareCtx.lineWidth = 3;
-                shareCtx.font = 'bold 40px Arial';
-                shareCtx.strokeText(today, shareCanvas.width / 2, shareCanvas.height - 200);
-                shareCtx.fillText(today, shareCanvas.width / 2, shareCanvas.height - 200);
-                
-                // 하단 메시지
-                shareCtx.fillStyle = '#FFFFFF';
-                shareCtx.strokeStyle = '#000000';
-                shareCtx.lineWidth = 3;
-                shareCtx.font = 'bold 35px Arial';
-                shareCtx.strokeText('나도 도전해보세요!', shareCanvas.width / 2, shareCanvas.height - 100);
-                shareCtx.fillText('나도 도전해보세요!', shareCanvas.width / 2, shareCanvas.height - 100);
-                
-                // 캐릭터 이미지 추가 (있는 경우)
-                if (typeof gameImages !== 'undefined' && gameImages.loaded.character && gameImages.character) {
-                    shareCtx.drawImage(gameImages.character, 100, 300, 150, 150);
-                    shareCtx.drawImage(gameImages.character, shareCanvas.width - 250, 300, 150, 150);
-                }
-                
-                // Canvas를 Blob으로 변환
-                shareCanvas.toBlob((blob) => {
-                    resolve(blob);
-                }, 'image/png', 0.9);
             });
         }
 
