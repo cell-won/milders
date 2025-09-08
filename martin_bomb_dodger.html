@@ -1,0 +1,2771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Milders Martin Bomb Dodger</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 3px solid #333;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        /* 데스크탑 최적화 */
+        @media (min-width: 769px) {
+            #gameContainer {
+                width: 900px;
+                height: 700px;
+            }
+            
+            #gameCanvas {
+                width: 900px;
+                height: 700px;
+            }
+            
+            .ui-overlay {
+                font-size: 22px;
+                padding: 15px;
+            }
+            
+            .game-title {
+                font-size: 38px;
+                margin-bottom: 12px;
+            }
+            
+            .all-time-record {
+                font-size: 15px;
+                margin-bottom: 20px;
+            }
+            
+            button {
+                padding: 15px 30px;
+                font-size: 18px;
+                margin: 10px;
+            }
+            
+            input {
+                padding: 12px;
+                font-size: 16px;
+                width: 200px;
+                margin: 8px;
+            }
+            
+            #rankingSection {
+                flex-direction: row;
+                gap: 25px;
+            }
+            
+            #score {
+                font-size: 32px;
+                top: 20px;
+                left: 20px;
+            }
+
+            #shieldTimer {
+                font-size: 20px;
+                top: 70px;
+                left: 20px;
+            }
+
+            #startButtonImage {
+                max-width: 180px;
+                margin: 15px;
+            }
+
+            /* 관리자 모달 입력창 크기 확대 */
+            .notice-form input, .notice-form textarea {
+                width: 100% !important;
+                max-width: 500px !important;
+                padding: 15px !important;
+                font-size: 16px !important;
+            }
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            body {
+                margin: 0;
+                padding: 0;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                align-items: stretch;
+                justify-content: stretch;
+            }
+            
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                border-radius: 0;
+                border: none;
+                max-width: 100vw;
+                max-height: 100vh;
+                position: relative;
+            }
+            
+            #gameCanvas {
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                max-width: 100vw;
+                max-height: 100vh;
+                display: block;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            
+            .ui-overlay {
+                font-size: 15px;
+                padding: 12px 8px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+                max-width: 100vw;
+                max-height: 100vh;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .ui-overlay::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .game-title {
+                font-size: clamp(32px, 9vw, 45px);
+                margin-bottom: 6px;
+                text-align: center;
+            }
+
+            .all-time-record {
+                font-size: clamp(11px, 3vw, 13px);
+                margin-bottom: 12px;
+                text-align: center;
+                padding: 6px 12px;
+            }
+            
+            button {
+                padding: 12px 18px;
+                font-size: 13px;
+                margin: 5px 3px;
+                min-height: 42px;
+                border-radius: 8px;
+                min-width: 90px;
+                width: auto;
+            }
+            
+            input, textarea {
+                padding: 12px;
+                font-size: 13px;
+                width: calc(50% - 5px);
+                max-width: 130px;
+                margin: 5px 2px;
+                border-radius: 8px;
+                border: 2px solid #ccc;
+            }
+            
+            #rankingSection {
+                flex-direction: column;
+                gap: 12px;
+                width: 100%;
+                align-items: center;
+                max-width: 100%;
+            }
+            
+            #rankingList, #rankingControls {
+                width: calc(100% - 16px);
+                max-width: 300px;
+                margin: 0 auto;
+                padding: 12px;
+            }
+
+            #rankingControls {
+                padding: 10px;
+            }
+
+            #rankingControls h3 {
+                font-size: 15px;
+                margin-bottom: 6px;
+            }
+
+            #rankingControls .input-row {
+                display: flex;
+                gap: 4px;
+                margin-bottom: 6px;
+                align-items: center;
+            }
+
+            #rankingControls button {
+                padding: 10px 14px;
+                font-size: 12px;
+                min-width: 70px;
+                margin: 0;
+            }
+            
+            #score {
+                font-size: clamp(16px, 4vw, 22px);
+                position: fixed;
+                top: env(safe-area-inset-top, 15px);
+                left: 15px;
+                z-index: 1000;
+                max-width: calc(100vw - 30px);
+            }
+
+            #shieldTimer {
+                font-size: clamp(13px, 3.2vw, 17px);
+                position: fixed;
+                top: calc(env(safe-area-inset-top, 15px) + 32px);
+                left: 15px;
+                z-index: 1000;
+                max-width: calc(100vw - 30px);
+            }
+            
+            #connectionStatus {
+                position: fixed;
+                top: env(safe-area-inset-top, 15px);
+                right: 15px;
+                font-size: 10px;
+                padding: 3px 6px;
+                z-index: 1000;
+                max-width: 100px;
+            }
+
+            #startButtonImage {
+                max-width: 120px;
+                margin: 10px;
+            }
+
+            /* 모바일 관리자 모달 입력창 크기 확대 */
+            .notice-form input, .notice-form textarea {
+                width: calc(100% - 10px) !important;
+                max-width: 400px !important;
+                padding: 16px !important;
+                font-size: 14px !important;
+            }
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            -webkit-appearance: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        button.warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+
+        #rankingSection {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #rankingList, #rankingControls {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 18px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 6px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .rank-item:hover {
+            background: rgba(255,215,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .rank-item.top3 {
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+            padding: 12px 8px;
+            margin: 6px 0;
+            border-radius: 8px;
+            color: #333;
+            border: none;
+            box-shadow: 0 4px 8px rgba(255,215,0,0.3);
+        }
+
+        #score, #shieldTimer {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            padding: 6px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        #shieldTimer {
+            background: rgba(255, 140, 0, 0.8);
+            color: white;
+            animation: shieldPulse 1s infinite;
+        }
+
+        @keyframes shieldPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        /* 플로팅 텍스트 애니메이션 CSS */
+        .floating-text {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 999;
+            animation: floatUp 1.5s ease-out forwards;
+        }
+
+        .floating-text.positive {
+            color: #ff4444;
+        }
+
+        .floating-text.negative {
+            color: #4444ff;
+        }
+
+        .floating-text.shield {
+            color: #ff8c00;
+            font-size: 20px;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0px) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-30px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-60px) scale(0.8);
+            }
+        }
+
+        /* 아이템 수집 파티클 효과 */
+        .item-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 998;
+            animation: particleExplosion 0.8s ease-out forwards;
+        }
+
+        .item-particle.bomb {
+            background: #ff4444;
+        }
+
+        .item-particle.item1 {
+            background: #ff8800;
+        }
+
+        .item-particle.item2 {
+            background: #4488ff;
+        }
+
+        .item-particle.shield {
+            background: #ff8c00;
+        }
+
+        @keyframes particleExplosion {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translateY(-40px);
+            }
+        }
+
+        /* 무적실드 강화된 시각 효과 */
+        .shield-effect {
+            position: absolute;
+            border: 4px solid rgba(255, 140, 0, 0.8);
+            border-radius: 50%;
+            animation: shieldGlow 0.3s ease-out;
+            pointer-events: none;
+            z-index: 997;
+        }
+
+        @keyframes shieldGlow {
+            0% {
+                transform: scale(0.5);
+                opacity: 1;
+                border-width: 8px;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+                border-width: 2px;
+            }
+        }
+
+        input[type="text"], input[type="password"], input[type="date"], textarea {
+            border: 2px solid #ddd;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76,175,80,0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        #startButtonImage {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        #startButtonImage:hover {
+            transform: scale(1.05);
+        }
+
+        .game-title {
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.8);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .all-time-record {
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            background: rgba(255, 215, 0, 0.1);
+            backdrop-filter: blur(5px);
+            font-weight: bold;
+        }
+
+        #connectionStatus {
+            position: absolute;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+
+        .online {
+            background: rgba(76,175,80,0.9);
+            color: white;
+        }
+
+        .offline {
+            background: rgba(244,67,54,0.9);
+            color: white;
+        }
+
+        .loading {
+            background: rgba(255,152,0,0.9);
+            color: white;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 13px;
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(244,67,54,0.1);
+            border-radius: 5px;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            font-size: 13px;
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(76,175,80,0.1);
+            border-radius: 5px;
+        }
+
+        /* 관리자 모달 */
+        .admin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .admin-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #333;
+        }
+
+        .backup-item {
+            padding: 8px;
+            margin: 4px 0;
+            background: rgba(0,0,0,0.05);
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+            font-size: 14px;
+        }
+
+        /* 공지사항 모달 */
+        .notice-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .notice-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .notice-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 8px;
+        }
+
+        .notice-body {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+
+        .notice-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .notice-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* 관리자 공지사항 관리 */
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .admin-tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .admin-tab.active {
+            border-bottom-color: #4CAF50;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .admin-tab-content {
+            display: none;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        .notice-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .notice-item {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .notice-item.expired {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
+        .notice-item-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .notice-item-meta {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .notice-item-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        /* 방문자 카운터 */
+        .visitor-counter {
+            position: fixed;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+
+        .visitor-counter.game-playing {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* 상위 10위 확인 모달 */
+        .rank-check-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+        }
+
+        .rank-check-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 90%;
+            color: #333;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .rank-check-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+
+        .rank-check-message {
+            font-size: 16px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .rank-check-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* iOS 스타일 적용 */
+        @supports (-webkit-touch-callout: none) {
+            input, textarea {
+                -webkit-appearance: none;
+                border-radius: 10px;
+            }
+            
+            button {
+                -webkit-appearance: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="900" height="700"></canvas>
+        
+        <div id="connectionStatus" class="loading">연결 중...</div>
+        <div id="score">점수: 0</div>
+        <div id="shieldTimer" class="hidden">무적 실드: 0초</div>
+        
+        <!-- 시작 화면 -->
+        <div id="startScreen" class="ui-overlay">
+            <h1 class="game-title" style="line-height: 1.2;">
+                <div style="font-size: 0.7em;">Milders</div>
+                <div>Martin Bomb Dodger</div>
+            </h1>
+            <div id="allTimeRecord" class="all-time-record">🏆 역대 최고 기록: 로딩 중...</div>
+            <p>좌우 화살표 또는 터치로 폭탄을 피하세요!</p>
+            <img id="startButtonImage" src="startbutton.png" alt="게임 시작" onclick="startGame()">
+            
+            <div id="rankingSection">
+                <div id="rankingList">
+                    <h3>TOP 3 랭킹</h3>
+                    <div id="top3Rankings">로딩 중...</div>
+                </div>
+                
+                <div id="rankingControls">
+                    <h3>내 순위 확인</h3>
+                    <div class="input-row">
+                        <input type="text" id="checkNickname" placeholder="닉네임" maxlength="20" autocomplete="off">
+                        <input type="password" id="checkPin" placeholder="PIN (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                    </div>
+                    <button class="secondary" onclick="checkMyRanking()">내 순위 보기</button>
+                    <div id="myRankDisplay"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 게임오버 화면 -->
+        <div id="gameOverScreen" class="ui-overlay hidden">
+            <img src="gameover.png" alt="게임 오버" style="max-width: 250px; margin: 20px;">
+            <p id="finalScore">최종 점수: 0</p>
+            <div id="nameInputSection" class="hidden">
+                <input type="text" id="playerName" placeholder="닉네임 (공개)" maxlength="20" autocomplete="off">
+                <input type="password" id="playerPin" placeholder="개인확인번호 (6자리)" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                <p style="font-size: 12px; color: #ccc;">* 개인확인번호는 6자리 숫자로 입력하세요</p>
+                <br>
+                <button onclick="submitScore()">랭킹 등록</button>
+                <div id="submitMessage"></div>
+            </div>
+            <!-- 게임 종료 버튼들 (랭킹 등록 중일 때는 숨김) -->
+            <div id="gameEndButtons">
+                <button onclick="restartGame()">다시 시작</button>
+                <button onclick="showStartScreen()">메인 메뉴</button>
+            </div>
+        </div>
+
+        <!-- 상위 10위 랭킹 확인 모달 -->
+        <div id="rankCheckModal" class="rank-check-modal hidden">
+            <div class="rank-check-content">
+                <div class="rank-check-title">🎉 축하합니다! 🎉</div>
+                <div class="rank-check-message" id="rankCheckMessage">
+                    상위 10위 안에 진입했습니다!<br>
+                    랭킹에 등록하시겠습니까?
+                </div>
+                <div class="rank-check-buttons">
+                    <button onclick="proceedToRankingRegistration()">랭킹 등록하기</button>
+                    <button class="secondary" onclick="skipRankingRegistration()">건너뛰기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 관리자 모달 -->
+        <div id="adminModal" class="admin-modal hidden">
+            <div class="admin-content">
+                <h2>관리자 모드</h2>
+                
+                <div class="admin-tabs">
+                    <div class="admin-tab active" onclick="switchAdminTab('ranking')">랭킹 관리</div>
+                    <div class="admin-tab" onclick="switchAdminTab('notice')">공지사항 관리</div>
+                </div>
+                
+                <!-- 랭킹 관리 탭 -->
+                <div id="ranking-tab" class="admin-tab-content active">
+                    <p>관리자 권한으로 로그인되었습니다.</p>
+                    <br>
+                    <button class="danger" onclick="resetRankings()">랭킹 초기화</button>
+                    <button class="warning" onclick="viewBackupData()">백업 기록 보기</button>
+                    <div id="adminMessage"></div>
+                    <div id="backupDisplay"></div>
+                </div>
+                
+                <!-- 공지사항 관리 탭 -->
+                <div id="notice-tab" class="admin-tab-content">
+                    <h3>새 공지사항 작성</h3>
+
+<div class="notice-form">
+                        <input type="text" id="noticeTitle" placeholder="공지사항 제목" maxlength="100">
+                        <textarea id="noticeContent" placeholder="공지사항 내용" rows="5" maxlength="1000"></textarea>
+                        <input type="date" id="noticeExpireDate" placeholder="공지 게시 마감 기간" title="만료일 (선택사항)">
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="saveNotice()">공지사항 저장</button>
+                            <button class="secondary" onclick="clearNoticeForm()">초기화</button>
+                        </div>
+                        <div id="noticeMessage"></div>
+                    </div>
+                    
+                    <hr style="margin: 30px 0;">
+                    
+                    <h3>기존 공지사항 관리</h3>
+                    <div id="noticeList">로딩 중...</div>
+                </div>
+                
+                <br>
+                <button class="secondary" onclick="closeAdminModal()">닫기</button>
+            </div>
+        </div>
+
+        <!-- 공지사항 표시 모달 -->
+        <div id="noticeModal" class="notice-modal hidden">
+            <div class="notice-content">
+                <div class="notice-title" id="noticeModalTitle"></div>
+                <div class="notice-body" id="noticeModalContent"></div>
+                <div class="notice-actions">
+                    <div class="notice-checkbox">
+                        <input type="checkbox" id="dontShowToday">
+                        <label for="dontShowToday">오늘 하루 보지 않기</label>
+                    </div>
+                    <button onclick="closeNoticeModal()">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 방문자 카운터 -->
+    <div class="visitor-counter" id="visitorCounter">
+        <span id="visitorCount">방문자: 로딩중...</span>
+    </div>
+<!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc, updateDoc, increment, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHUAQuZ-JeNmpeDfdbo5kPwW7v2emH8bg",
+            authDomain: "milders-flappy-martin.firebaseapp.com",
+            projectId: "milders-flappy-martin",
+            storageBucket: "milders-flappy-martin.firebasestorage.app",
+            messagingSenderId: "505347834080",
+            appId: "1:505347834080:web:c10bcf079e1681ffd19085"
+        };
+
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            window.firebaseDB = db;
+            window.firestoreModules = { collection, addDoc, query, orderBy, limit, onSnapshot, where, getDocs, deleteDoc, doc, updateDoc, increment, setDoc, getDoc };
+            window.firebaseAuth = getAuth(app);
+            window.authModules = { signInWithEmailAndPassword, signOut };
+            console.log("Firebase 연결 성공!");
+        } catch (error) {
+            console.error("Firebase 연결 실패:", error);
+            window.firebaseDB = null;
+        }
+    </script>
+
+<script>
+        // Martin Bomb Dodger용 디바이스별 게임 설정
+        const DEVICE_CONFIGS = {
+            mobile: {
+                gameSpeed: 2.0,           // 기본 떨어지는 속도
+                moveSpeed: 5.0,           // 좌우 이동 속도
+                bombInterval: 30,         // 폭탄 생성 간격 (주요)
+                bonusInterval: 200,       // 보너스 아이템 생성 간격 (부가)
+                bombProbability: 0.8,     // 폭탄 생성 확률 (80%)
+                bonusItemProbability: 0.3,// 보너스 아이템 생성 확률 (30%)
+                characterSize: 50,        // 캐릭터 크기
+                itemSize: 40,             // 아이템 크기
+                itemSpeedVariation: 0.3,  // 아이템 속도 변화
+                spawnWidth: 0.8,          // 생성 구역 폭 (화면 대비)
+                speedIncrease: 0.15,      // 난이도별 속도 증가량
+                intervalDecrease: 3       // 난이도별 생성간격 감소량
+            },
+            desktop: {
+                gameSpeed: 2.5,
+                moveSpeed: 6.0,
+                bombInterval: 35,
+                bonusInterval: 180,
+                bombProbability: 0.8,
+                bonusItemProbability: 0.35,
+                characterSize: 45,
+                itemSize: 35,
+                itemSpeedVariation: 0.4,
+                spawnWidth: 0.8,
+                speedIncrease: 0.2,
+                intervalDecrease: 4
+            }
+        };
+
+        // 보너스 아이템 타입 및 확률 정의 (bomb 제외)
+        const BONUS_ITEM_TYPES = ['item1', 'item2', 'shield'];
+        const BONUS_ITEM_PROBABILITIES = {
+            item1: 0.5,   // 50%
+            item2: 0.3,   // 30%
+            shield: 0.2   // 20%
+        };
+
+        // 확률 기반 보너스 아이템 선택 함수
+        function selectRandomBonusItem() {
+            const random = Math.random();
+            let cumulative = 0;
+            
+            for (const itemType of BONUS_ITEM_TYPES) {
+                cumulative += BONUS_ITEM_PROBABILITIES[itemType];
+                if (random < cumulative) {
+                    return itemType;
+                }
+            }
+            
+            return 'item1'; // 기본값
+        }
+        
+        // 게임 기본 설정
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = 'start';
+        let score = 0;
+        let gameSpeed = 2.9;
+        let difficultyLevel = 1;
+        let currentNoticeIndex = 0;
+        let pendingNotices = [];
+        
+        // 분리된 아이템 시스템 변수 (게임 시작에 필수)
+        let bombs = [];           // 폭탄만 저장
+        let bonusItems = [];      // 보너스 아이템만 저장
+        let bombTimer = 0;        // 폭탄 생성 타이머
+        let bonusTimer = 0;       // 보너스 아이템 생성 타이머
+        
+        // 무적 실드 시스템 변수
+        let isInvulnerable = false;
+        let invulnerabilityTimer = 0;
+        let invulnerabilityDuration = 5000; // 5초
+        
+        // 역대 최고 기록 변수 (기본값 설정)
+        let allTimeRecord = {
+            score: 0,
+            nickname: '아직 없음',
+            device: 'unknown',
+            date: ''
+        };
+        
+        // 디바이스 감지
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        let currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+        
+        // 모바일 뷰포트 설정
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        function setupCanvas() {
+            if (isMobile) {
+                setVH();
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                canvas.style.touchAction = 'manipulation';
+            } else {
+                canvas.width = 900;
+                canvas.height = 700;
+            }
+        }
+        
+        setupCanvas();
+        
+        // 캐릭터 이동 설정 (중력 제거, 좌우 이동만)
+        let MOVE_SPEED = currentConfig.moveSpeed;
+        
+        // 연결 상태 업데이트
+        function updateConnectionStatus(status, text) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = status;
+            statusEl.textContent = text;
+        }
+        
+        // 암호화 함수
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString().slice(0, 6);
+        }
+
+        // 관리자 인증 함수
+        async function adminLogin() {
+            try {
+                const { signInWithEmailAndPassword } = window.authModules;
+                const userCredential = await signInWithEmailAndPassword(window.firebaseAuth, 'milders@milders.com', '021502');
+                
+                // 토큰 강제 갱신
+                await userCredential.user.getIdToken(true);
+                
+                console.log('관리자 인증 성공 + 토큰 갱신');
+                document.getElementById('adminModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('관리자 로그인 실패:', error);
+                alert('관리자 인증에 실패했습니다.');
+            }
+        }
+
+        // 강화된 역대 최고 기록 관리 함수들
+        async function loadAllTimeRecord() {
+            const maxRetries = 3;
+            let currentRetry = 0;
+            
+            if (!window.firebaseDB) {
+                console.log('Firebase 연결 없음 - 역대 기록 로드 불가');
+                setDefaultRecord('연결 필요');
+                return;
+            }
+            
+            while (currentRetry < maxRetries) {
+                try {
+                    console.log(`역대 기록 로드 시도 ${currentRetry + 1}/${maxRetries}`);
+                    
+                    const { doc, getDoc, setDoc } = window.firestoreModules;
+                    const recordRef = doc(window.firebaseDB, 'all_time_record_dodger', 'global'); // dodger용 별도 기록
+                    
+                    const recordDoc = await getDoc(recordRef);
+                    
+                    if (recordDoc.exists()) {
+                        const data = recordDoc.data();
+                        allTimeRecord = data;
+                        const deviceIcon = data.device === 'mobile' ? '📱' : '💻';
+                        document.getElementById('allTimeRecord').textContent = 
+                            `🏆 역대 최고 기록: ${data.nickname} ${deviceIcon} - ${data.score}점 (${data.date})`;
+                        console.log('역대 최고 기록 로드 성공:', data);
+                        return;
+                    } else {
+                        console.log('역대 기록 문서 없음, 기본 문서 생성 시도');
+                        await createDefaultRecord(recordRef, setDoc);
+                        return;
+                    }
+                    
+                } catch (error) {
+                    console.error(`역대 기록 로드 시도 ${currentRetry + 1} 실패:`, error);
+                    currentRetry++;
+                    
+                    if (currentRetry < maxRetries) {
+                        console.log(`${1000 * currentRetry}ms 후 재시도...`);
+                        await new Promise(resolve => setTimeout(resolve, 1000 * currentRetry));
+                    }
+                }
+            }
+            
+            console.error('역대 기록 로드 최종 실패 - 기본값 사용');
+            setDefaultRecord('로드 실패');
+        }
+
+        async function createDefaultRecord(recordRef, setDoc) {
+            const defaultRecord = {
+                score: 0,
+                nickname: '아직 없음',
+                device: 'unknown',
+                date: new Date().toLocaleDateString('ko-KR'),
+                timestamp: Date.now()
+            };
+            
+            try {
+                await setDoc(recordRef, defaultRecord);
+                allTimeRecord = defaultRecord;
+                document.getElementById('allTimeRecord').textContent = '🏆 역대 최고 기록: 아직 기록 없음';
+                console.log('기본 역대 기록 문서 생성 완료');
+            } catch (writeError) {
+                console.error('기본 문서 생성 실패:', writeError);
+                throw writeError;
+            }
+        }
+
+        function setDefaultRecord(reason) {
+            allTimeRecord = {
+                score: 0,
+                nickname: reason === '연결 필요' ? '연결 필요' : '오류',
+                device: 'unknown',
+                date: ''
+            };
+            document.getElementById('allTimeRecord').textContent = `🏆 역대 최고 기록: ${reason}`;
+        }
+
+        async function updateAllTimeRecord(newScore, nickname, device) {
+            if (!window.firebaseDB || newScore <= allTimeRecord.score) return;
+            
+            const maxRetries = 2;
+            let currentRetry = 0;
+            
+            while (currentRetry < maxRetries) {
+                try {
+                    const { doc, setDoc } = window.firestoreModules;
+                    const newRecord = {
+                        score: newScore,
+                        nickname: nickname,
+                        device: device,
+                        date: new Date().toLocaleDateString('ko-KR'),
+                        timestamp: Date.now()
+                    };
+                    
+                    await setDoc(doc(window.firebaseDB, 'all_time_record_dodger', 'global'), newRecord);
+                    allTimeRecord = newRecord;
+                    
+                    const deviceIcon = device === 'mobile' ? '📱' : '💻';
+                    document.getElementById('allTimeRecord').textContent = 
+                        `🏆 역대 최고 기록: ${nickname} ${deviceIcon} - ${newScore}점 (${newRecord.date})`;
+                    
+                    console.log('신기록 갱신 성공:', newRecord);
+                    return;
+                    
+                } catch (error) {
+                    console.error(`신기록 저장 시도 ${currentRetry + 1} 실패:`, error);
+                    currentRetry++;
+                    
+                    if (currentRetry < maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+            }
+            
+            console.error('신기록 저장 최종 실패');
+        }
+
+// 무적 실드 관리 함수들
+        function activateInvulnerability() {
+            isInvulnerable = true;
+            invulnerabilityTimer = invulnerabilityDuration;
+            document.getElementById('shieldTimer').classList.remove('hidden');
+            
+            // 무적실드 활성화 시각적 효과 강화
+            showShieldActivationEffect();
+            console.log('무적 실드 활성화! 5초간 지속');
+        }
+
+        function updateInvulnerability(deltaTime) {
+            if (!isInvulnerable) return;
+            
+            invulnerabilityTimer -= deltaTime;
+            const secondsLeft = Math.ceil(invulnerabilityTimer / 1000);
+            document.getElementById('shieldTimer').textContent = `무적 실드: ${secondsLeft}초`;
+            
+            if (invulnerabilityTimer <= 0) {
+                deactivateInvulnerability();
+            }
+        }
+
+        function deactivateInvulnerability() {
+            isInvulnerable = false;
+            invulnerabilityTimer = 0;
+            document.getElementById('shieldTimer').classList.add('hidden');
+            console.log('무적 실드 종료');
+        }
+
+        // 새로운 시각적 효과 함수들
+        function showFloatingText(x, y, text, type) {
+            const canvas = document.getElementById('gameCanvas');
+            const rect = canvas.getBoundingClientRect();
+            
+            // 캔버스 좌표를 화면 좌표로 변환
+            const screenX = rect.left + (x * rect.width / canvas.width);
+            const screenY = rect.top + (y * rect.height / canvas.height);
+            
+            const floatingText = document.createElement('div');
+            floatingText.className = `floating-text ${type}`;
+            floatingText.textContent = text;
+            floatingText.style.left = screenX + 'px';
+            floatingText.style.top = screenY + 'px';
+            
+            document.body.appendChild(floatingText);
+            
+            // 1.5초 후 요소 제거
+            setTimeout(() => {
+                if (floatingText.parentNode) {
+                    floatingText.parentNode.removeChild(floatingText);
+                }
+            }, 1500);
+        }
+
+        function createItemParticles(x, y, itemType) {
+            const canvas = document.getElementById('gameCanvas');
+            const rect = canvas.getBoundingClientRect();
+            const particleCount = 6;
+            
+            // 캔버스 좌표를 화면 좌표로 변환
+            const screenX = rect.left + (x * rect.width / canvas.width);
+            const screenY = rect.top + (y * rect.height / canvas.height);
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = `item-particle ${itemType}`;
+                
+                // 랜덤한 방향으로 파티클 배치
+                const angle = (Math.PI * 2 * i) / particleCount;
+                const distance = 15 + Math.random() * 10;
+                const particleX = screenX + Math.cos(angle) * distance;
+                const particleY = screenY + Math.sin(angle) * distance;
+                
+                particle.style.left = particleX + 'px';
+                particle.style.top = particleY + 'px';
+                
+                document.body.appendChild(particle);
+                
+                // 0.8초 후 파티클 제거
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 800);
+            }
+        }
+
+        function showShieldActivationEffect() {
+            const canvas = document.getElementById('gameCanvas');
+            const rect = canvas.getBoundingClientRect();
+            
+            // 캐릭터 위치 계산 (캔버스 기준 → 화면 기준)
+            const characterScreenX = rect.left + ((character.x + character.width/2) * rect.width / canvas.width);
+            const characterScreenY = rect.top + ((character.y + character.height/2) * rect.height / canvas.height);
+            
+            const shieldEffect = document.createElement('div');
+            shieldEffect.className = 'shield-effect';
+            shieldEffect.style.left = (characterScreenX - 30) + 'px';
+            shieldEffect.style.top = (characterScreenY - 30) + 'px';
+            shieldEffect.style.width = '60px';
+            shieldEffect.style.height = '60px';
+            
+            document.body.appendChild(shieldEffect);
+            
+            // 0.3초 후 효과 제거
+            setTimeout(() => {
+                if (shieldEffect.parentNode) {
+                    shieldEffect.parentNode.removeChild(shieldEffect);
+                }
+            }, 300);
+        }
+
+        // 방문자 수 관리
+        async function updateVisitorCount() {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const today = new Date().toDateString();
+                const { doc, setDoc, getDoc, updateDoc, increment } = window.firestoreModules;
+                
+                // 총 방문자 수 업데이트
+                const totalVisitorRef = doc(window.firebaseDB, 'visitor_stats', 'total');
+                try {
+                    await updateDoc(totalVisitorRef, {
+                        count: increment(1),
+                        lastUpdate: Date.now()
+                    });
+                } catch (error) {
+                    await setDoc(totalVisitorRef, {
+                        count: 1,
+                        lastUpdate: Date.now()
+                    });
+                }
+                
+                // 오늘 방문자 수 업데이트
+                const todayVisitorRef = doc(window.firebaseDB, 'visitor_stats', `daily_${today.replace(/\s/g, '_')}`);
+                try {
+                    await updateDoc(todayVisitorRef, {
+                        count: increment(1),
+                        date: today,
+                        lastUpdate: Date.now()
+                    });
+                } catch (error) {
+                    await setDoc(todayVisitorRef, {
+                        count: 1,
+                        date: today,
+                        lastUpdate: Date.now()
+                    });
+                }
+                
+                loadVisitorCount();
+                
+            } catch (error) {
+                console.error('방문자 수 업데이트 오류:', error);
+                document.getElementById('visitorCount').textContent = '방문자: 집계 오류';
+            }
+        }
+        
+        async function loadVisitorCount() {
+            if (!window.firebaseDB) {
+                document.getElementById('visitorCount').textContent = '방문자: 집계 불가';
+                return;
+            }
+            
+            try {
+                const today = new Date().toDateString();
+                const { doc, getDoc } = window.firestoreModules;
+                
+                const totalVisitorRef = doc(window.firebaseDB, 'visitor_stats', 'total');
+                const totalDoc = await getDoc(totalVisitorRef);
+                const totalCount = totalDoc.exists() ? (totalDoc.data().count || 0) : 0;
+                
+                const todayVisitorRef = doc(window.firebaseDB, 'visitor_stats', `daily_${today.replace(/\s/g, '_')}`);
+                const todayDoc = await getDoc(todayVisitorRef);
+                const todayCount = todayDoc.exists() ? (todayDoc.data().count || 0) : 0;
+                
+                document.getElementById('visitorCount').textContent = `총 방문자: ${totalCount} | 오늘: ${todayCount}`;
+                
+            } catch (error) {
+                console.error('방문자 수 로드 오류:', error);
+                document.getElementById('visitorCount').textContent = '방문자: 집계 오류';
+            }
+        }
+
+// 개선된 공지사항 관리 (에러 해결)
+        async function loadNotices() {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { collection, getDocs, query, where } = window.firestoreModules;
+                
+                // 단순 쿼리로 변경하여 인덱스 오류 방지
+                const q = query(
+                    collection(window.firebaseDB, 'notices'),
+                    where('isActive', '==', true)
+                );
+                
+                const snapshot = await getDocs(q);
+                const notices = [];
+                const now = Date.now();
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    // 만료일 확인
+                    if (data.expireDate && new Date(data.expireDate).getTime() < now) {
+                        return;
+                    }
+                    
+                    notices.push({ id: doc.id, ...data });
+                });
+                
+                // 클라이언트에서 정렬
+                notices.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                
+                if (notices.length > 0) {
+                    console.log('공지사항 로드됨:', notices.length + '개');
+                    checkAndShowNotices(notices);
+                }
+                
+            } catch (error) {
+                console.error('공지사항 로드 오류:', error);
+                loadNoticesAlternative();
+            }
+        }
+        
+        // 대안 공지사항 로드 방법
+        async function loadNoticesAlternative() {
+            try {
+                const { collection, getDocs } = window.firestoreModules;
+                const snapshot = await getDocs(collection(window.firebaseDB, 'notices'));
+                
+                const notices = [];
+                const now = Date.now();
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    if (data.isActive && (!data.expireDate || new Date(data.expireDate).getTime() >= now)) {
+                        notices.push({ id: doc.id, ...data });
+                    }
+                });
+                
+                notices.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                
+                if (notices.length > 0) {
+                    console.log('공지사항 대안 로드됨:', notices.length + '개');
+                    checkAndShowNotices(notices);
+                }
+                
+            } catch (error) {
+                console.error('공지사항 대안 로드 실패:', error);
+            }
+        }
+        
+        function checkAndShowNotices(notices) {
+            if (notices.length === 0) return;
+            
+            const today = new Date().toDateString();
+            const hiddenNotices = JSON.parse(localStorage.getItem(`hiddenNotices_${today}`) || '[]');
+            
+            const visibleNotices = notices.filter(notice => !hiddenNotices.includes(notice.id));
+            
+            if (visibleNotices.length > 0) {
+                pendingNotices = visibleNotices;
+                currentNoticeIndex = 0;
+                setTimeout(showNextNotice, 2000);
+            }
+        }
+        
+        function showNextNotice() {
+            if (currentNoticeIndex >= pendingNotices.length) return;
+            
+            const notice = pendingNotices[currentNoticeIndex];
+            document.getElementById('noticeModalTitle').textContent = notice.title;
+            document.getElementById('noticeModalContent').textContent = notice.content;
+            document.getElementById('dontShowToday').checked = false;
+            document.getElementById('noticeModal').classList.remove('hidden');
+        }
+        
+        function closeNoticeModal() {
+            const dontShow = document.getElementById('dontShowToday').checked;
+            
+            if (dontShow) {
+                const today = new Date().toDateString();
+                const hiddenNotices = JSON.parse(localStorage.getItem(`hiddenNotices_${today}`) || '[]');
+                const currentNotice = pendingNotices[currentNoticeIndex];
+                
+                if (!hiddenNotices.includes(currentNotice.id)) {
+                    hiddenNotices.push(currentNotice.id);
+                    localStorage.setItem(`hiddenNotices_${today}`, JSON.stringify(hiddenNotices));
+                }
+            }
+            
+            document.getElementById('noticeModal').classList.add('hidden');
+            currentNoticeIndex++;
+            
+            if (currentNoticeIndex < pendingNotices.length) {
+                setTimeout(showNextNotice, 1000);
+            }
+        }
+
+        // 관리자 공지사항 관리
+        function switchAdminTab(tabName) {
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.admin-tab:nth-child(${tabName === 'ranking' ? 1 : 2})`).classList.add('active');
+            
+            document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'notice') {
+                loadAdminNotices();
+            }
+        }
+        
+        async function saveNotice() {
+            const title = document.getElementById('noticeTitle').value.trim();
+            const content = document.getElementById('noticeContent').value.trim();
+            const expireDate = document.getElementById('noticeExpireDate').value;
+            const messageEl = document.getElementById('noticeMessage');
+            
+            if (!title || !content) {
+                messageEl.innerHTML = '<div class="error-message">제목과 내용을 모두 입력해주세요</div>';
+                return;
+            }
+            
+            if (!window.firebaseDB) {
+                messageEl.innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            try {
+                messageEl.innerHTML = '<div class="loading">공지사항 저장 중...</div>';
+                
+                const { collection, addDoc } = window.firestoreModules;
+                const noticeData = {
+                    title: title,
+                    content: content,
+                    isActive: true,
+                    createdAt: Date.now(),
+                    createdBy: 'admin'
+                };
+                
+                if (expireDate) {
+                    noticeData.expireDate = expireDate;
+                }
+                
+                await addDoc(collection(window.firebaseDB, 'notices'), noticeData);
+                
+                messageEl.innerHTML = '<div class="success-message">공지사항이 저장되었습니다</div>';
+                clearNoticeForm();
+                loadAdminNotices();
+                
+            } catch (error) {
+                console.error('공지사항 저장 오류:', error);
+                messageEl.innerHTML = '<div class="error-message">저장 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+        
+        function clearNoticeForm() {
+            document.getElementById('noticeTitle').value = '';
+            document.getElementById('noticeContent').value = '';
+            document.getElementById('noticeExpireDate').value = '';
+            document.getElementById('noticeMessage').innerHTML = '';
+        }
+        
+        async function loadAdminNotices() {
+            if (!window.firebaseDB) return;
+            
+            try {
+                const { collection, getDocs } = window.firestoreModules;
+                const snapshot = await getDocs(collection(window.firebaseDB, 'notices'));
+                
+                let html = '';
+                const now = Date.now();
+                const notices = [];
+                
+                snapshot.forEach((doc) => {
+                    notices.push({ id: doc.id, ...doc.data() });
+                });
+                
+                notices.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                
+                if (notices.length === 0) {
+                    html = '<p>등록된 공지사항이 없습니다.</p>';
+                } else {
+                    notices.forEach((data) => {
+                        const isExpired = data.expireDate && new Date(data.expireDate).getTime() < now;
+                        const statusText = data.isActive ? (isExpired ? '만료됨' : '활성') : '비활성';
+                        const statusColor = data.isActive ? (isExpired ? '#ff9800' : '#4CAF50') : '#f44336';
+                        
+                        html += `
+                            <div class="notice-item ${isExpired ? 'expired' : ''}">
+                                <div class="notice-item-title">${data.title}</div>
+                                <div class="notice-item-meta">
+                                    작성일: ${new Date(data.createdAt).toLocaleDateString('ko-KR')} | 
+                                    상태: <span style="color: ${statusColor}">${statusText}</span>
+                                    ${data.expireDate ? ` | 만료일: ${new Date(data.expireDate).toLocaleDateString('ko-KR')}` : ''}
+                                </div>
+                                <div style="margin-top: 10px; color: #666; font-size: 14px;">${data.content}</div>
+                                <div class="notice-item-actions">
+                                    ${data.isActive ? 
+                                        `<button class="danger" style="padding: 5px 10px; font-size: 12px;" onclick="deactivateNotice('${data.id}')">비활성화</button>` :
+                                        `<button class="secondary" style="padding: 5px 10px; font-size: 12px;" onclick="activateNotice('${data.id}')">활성화</button>`
+                                    }
+                                    <button class="danger" style="padding: 5px 10px; font-size: 12px; margin-left: 5px;" onclick="deleteNotice('${data.id}')">삭제</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('noticeList').innerHTML = html;
+                
+            } catch (error) {
+                console.error('관리자 공지사항 로드 오류:', error);
+                document.getElementById('noticeList').innerHTML = '<p>공지사항 로드 중 오류가 발생했습니다: ' + error.message + '</p>';
+            }
+        }
+        
+        async function deactivateNotice(noticeId) {
+            try {
+                const { doc, updateDoc } = window.firestoreModules;
+                await updateDoc(doc(window.firebaseDB, 'notices', noticeId), { isActive: false });
+                loadAdminNotices();
+            } catch (error) {
+                console.error('공지사항 비활성화 오류:', error);
+            }
+        }
+        
+        async function activateNotice(noticeId) {
+            try {
+                const { doc, updateDoc } = window.firestoreModules;
+                await updateDoc(doc(window.firebaseDB, 'notices', noticeId), { isActive: true });
+                loadAdminNotices();
+            } catch (error) {
+                console.error('공지사항 활성화 오류:', error);
+            }
+        }
+        
+        async function deleteNotice(noticeId) {
+            if (!confirm('정말로 이 공지사항을 삭제하시겠습니까?')) return;
+            
+            try {
+                const { doc, deleteDoc } = window.firestoreModules;
+                await deleteDoc(doc(window.firebaseDB, 'notices', noticeId));
+                loadAdminNotices();
+            } catch (error) {
+                console.error('공지사항 삭제 오류:', error);
+            }
+        }
+
+        // 개선된 랭킹 초기화 (상위 10위만 백업)
+        async function resetRankings() {
+            if (!window.firebaseDB) {
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            if (!confirm('정말로 랭킹을 초기화하시겠습니까?\n상위 10위 기록이 백업됩니다.')) {
+                return;
+            }
+            
+            try {
+                document.getElementById('adminMessage').innerHTML = '<div class="loading">랭킹 초기화 중...</div>';
+                
+                const { collection, query, orderBy, limit, getDocs, setDoc, deleteDoc, doc } = window.firestoreModules;
+                
+                const top10Query = query(
+                    collection(window.firebaseDB, 'rankings'), 
+                    orderBy('score', 'desc'), 
+                    limit(10)
+                );
+                const snapshot = await getDocs(top10Query);
+                
+                const resetDate = new Date().toLocaleString('ko-KR');
+                const resetNumber = Date.now();
+                
+                const backupRankings = [];
+                let rankCounter = 1;
+                snapshot.forEach((docSnapshot) => {
+                    const data = docSnapshot.data();
+                    backupRankings.push({
+                        rank: rankCounter++,
+                        nickname: data.nickname,
+                        score: data.score,
+                        date: data.date,
+                        device: data.device,
+                        timestamp: data.timestamp
+                    });
+                });
+                
+                const backupDoc = {
+                    resetDate: resetDate,
+                    resetNumber: resetNumber,
+                    rankings: backupRankings,
+                    totalBackedUp: backupRankings.length
+                };
+                
+                await setDoc(doc(window.firebaseDB, 'backup_rankings', `reset_${resetNumber}`), backupDoc);
+                
+                const allRankingsQuery = query(collection(window.firebaseDB, 'rankings'));
+                const allSnapshot = await getDocs(allRankingsQuery);
+                const deletePromises = [];
+                allSnapshot.forEach((docSnapshot) => {
+                    deletePromises.push(deleteDoc(doc(window.firebaseDB, 'rankings', docSnapshot.id)));
+                });
+                await Promise.all(deletePromises);
+                
+                document.getElementById('adminMessage').innerHTML = `<div class="success-message">랭킹이 초기화되었습니다!<br>상위 ${backupRankings.length}위 백업 완료<br>초기화 날짜: ${resetDate}</div>`;
+                loadTop3Rankings();
+                
+            } catch (error) {
+                console.error('랭킹 초기화 오류:', error);
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">초기화 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+        
+        async function viewBackupData() {
+            if (!window.firebaseDB) {
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            try {
+                const { collection, query, orderBy, getDocs } = window.firestoreModules;
+                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('resetNumber', 'desc'));
+                const snapshot = await getDocs(backupQuery);
+                
+                let html = '<h3>백업된 랭킹 기록</h3>';
+                
+                if (snapshot.empty) {
+                    html += '<p>백업된 기록이 없습니다.</p>';
+                } else {
+                    const totalResets = snapshot.size;
+                    let resetIndex = 0;
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const resetDate = data.resetDate || '날짜 정보 없음';
+                        resetIndex++;
+                        const displayIndex = totalResets - resetIndex + 1;
+                        
+                        html += `<h4 style="margin-top: 20px; color: #2196F3;">${displayIndex}번째 초기화 (${resetDate})</h4>`;
+                        html += `<p style="font-size: 12px; color: #666;">총 ${data.totalBackedUp || 0}명 백업</p>`;
+                        
+                        if (data.rankings && data.rankings.length > 0) {
+                            data.rankings.forEach((ranking) => {
+                                const deviceIcon = ranking.device === 'mobile' ? '📱' : '💻';
+                                html += `<div class="backup-item">
+                                    ${ranking.rank}위. ${ranking.nickname} ${deviceIcon} - ${ranking.score}점 
+                                    <br><small>기록일: ${ranking.date || '정보 없음'}</small>
+                                </div>`;
+                            });
+                        }
+                    });
+                }
+                
+                document.getElementById('backupDisplay').innerHTML = html;
+                
+            } catch (error) {
+                console.error('백업 조회 오류:', error);
+                document.getElementById('adminMessage').innerHTML = '<div class="error-message">백업 조회 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+        
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+            document.getElementById('adminMessage').innerHTML = '';
+            document.getElementById('backupDisplay').innerHTML = '';
+        }
+
+// 이미지 관리 시스템
+        const gameImages = {
+            background: null,
+            character: null,
+            ground: null,
+            bomb: null,
+            item1: null,
+            item2: null,
+            shield: null,
+            loaded: {
+                background: false,
+                character: false,
+                ground: false,
+                bomb: false,
+                item1: false,
+                item2: false,
+                shield: false
+            }
+        };
+        
+        const GROUND_HEIGHT = isMobile ? 60 : 80;
+        
+        function loadGameImage(key, filename) {
+            const img = new Image();
+            img.onload = function() {
+                gameImages[key] = img;
+                gameImages.loaded[key] = true;
+                console.log(`${filename} 로딩 성공`);
+            };
+            img.onerror = function() {
+                console.log(`${filename} 로딩 실패 - 기본 그래픽 사용`);
+                gameImages.loaded[key] = false;
+            };
+            img.src = filename;
+        }
+        
+        // 모든 이미지 로딩
+        loadGameImage('background', 'background.png');
+        loadGameImage('character', 'martin.png');
+        loadGameImage('ground', 'ground.png');
+        loadGameImage('bomb', 'bomb.png');
+        loadGameImage('item1', 'item1.png');
+        loadGameImage('item2', 'item2.png');
+        loadGameImage('shield', 'shield.png');
+
+        // 캐릭터 설정 (화면 하단 고정)
+        const character = {
+            x: 0,
+            y: 0,
+            width: currentConfig.characterSize,
+            height: currentConfig.characterSize
+        };
+
+        // 키보드 입력 상태
+        const keys = {
+            left: false,
+            right: false
+        };
+
+        // 성능 최적화
+        const targetFPS = isMobile ? 45 : 60;
+        let lastTime = 0;
+        let deltaTime = 0;
+        const frameDelay = 1000 / targetFPS;
+
+        // 게임 그리기 함수들
+        function drawCharacter() {
+            ctx.save();
+            
+            // 무적 실드 효과
+            if (isInvulnerable) {
+                ctx.strokeStyle = 'rgba(255, 140, 0, 0.8)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(character.x + character.width/2, character.y + character.height/2, character.width/2 + 8, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            if (gameImages.loaded.character && gameImages.character) {
+                ctx.drawImage(
+                    gameImages.character,
+                    character.x, character.y,
+                    character.width, character.height
+                );
+            } else {
+                // 기본 캐릭터 그리기
+                ctx.fillStyle = '#FF6B35';
+                ctx.beginPath();
+                ctx.arc(character.x + character.width/2, character.y + character.height/2, character.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(character.x + character.width/2 - 8, character.y + character.height/2 - 8, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(character.x + character.width/2 - 8, character.y + character.height/2 - 8, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+
+        function drawEnvironment() {
+            // 배경 그리기
+            if (gameImages.loaded.background && gameImages.background) {
+                ctx.drawImage(gameImages.background, 0, 0, canvas.width, canvas.height);
+            } else {
+                // 기본 배경 그리기
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height - GROUND_HEIGHT);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(1, '#98FB98');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height - GROUND_HEIGHT);
+            }
+            
+            // 바닥 그리기
+            const groundY = canvas.height - GROUND_HEIGHT;
+            
+            if (gameImages.loaded.ground && gameImages.ground) {
+                ctx.drawImage(gameImages.ground, 0, groundY, canvas.width, GROUND_HEIGHT);
+            } else {
+                // 기본 바닥 그리기
+                ctx.fillStyle = '#90EE90';
+                ctx.fillRect(0, groundY, canvas.width, GROUND_HEIGHT);
+                
+                ctx.strokeStyle = '#228B22';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, groundY);
+                ctx.lineTo(canvas.width, groundY);
+                ctx.stroke();
+            }
+        }
+
+        function updateCharacter() {
+            // 좌우 이동만 허용, Y축은 고정
+            if (keys.left && character.x > 0) {
+                character.x -= MOVE_SPEED;
+            }
+            if (keys.right && character.x < canvas.width - character.width) {
+                character.x += MOVE_SPEED;
+            }
+            
+            // 화면 경계 제한
+            character.x = Math.max(0, Math.min(canvas.width - character.width, character.x));
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `점수: ${score}`;
+        }
+
+        // 방문자 카운터 표시/숨기기 함수
+        function updateVisitorCounterVisibility() {
+            const visitorCounter = document.getElementById('visitorCounter');
+            if (gameState === 'playing') {
+                visitorCounter.classList.add('game-playing');
+            } else {
+                visitorCounter.classList.remove('game-playing');
+            }
+        }
+
+        // 게임 시작 함수
+        function startGame() {
+            console.log(`Martin Bomb Dodger 시작! (${isMobile ? '모바일' : '데스크탑'} 모드)`);
+            gameState = 'playing';
+            score = 0;
+            difficultyLevel = 1;
+            
+            // 무적 실드 초기화
+            deactivateInvulnerability();
+            
+            // 아이템 초기화
+            bombs = [];
+            bonusItems = [];
+            bombTimer = 0;
+            bonusTimer = 0;
+            
+            // 설정 업데이트
+            currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+            gameSpeed = currentConfig.gameSpeed;
+            MOVE_SPEED = currentConfig.moveSpeed;
+            
+            // 캐릭터 위치 설정 (화면 중앙 하단)
+            character.x = canvas.width / 2 - character.width / 2;
+            character.y = canvas.height - GROUND_HEIGHT - character.height - 10;
+            character.width = currentConfig.characterSize;
+            character.height = currentConfig.characterSize;
+            
+            updateScore();
+            updateVisitorCounterVisibility();
+            
+            // UI 숨기기/보이기
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('rankCheckModal').classList.add('hidden');
+        }
+
+        // 게임오버 함수
+        async function gameOver() {
+            gameState = 'gameOver';
+            deactivateInvulnerability();
+            updateVisitorCounterVisibility();
+            document.getElementById('finalScore').textContent = `최종 점수: ${score}`;
+            
+            const isTop10 = await checkTop10Eligibility(score);
+            
+            if (isTop10) {
+                showRankCheckModal();
+            } else {
+                document.getElementById('nameInputSection').classList.add('hidden');
+                document.getElementById('gameEndButtons').classList.remove('hidden');
+                clearGameOverInputs();
+                document.getElementById('gameOverScreen').classList.remove('hidden');
+            }
+        }
+
+        // 게임 재시작
+        function restartGame() {
+            startGame();
+        }
+
+        // 시작 화면으로
+        function showStartScreen() {
+            gameState = 'start';
+            updateVisitorCounterVisibility();
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('rankCheckModal').classList.add('hidden');
+            
+            // 입력 필드 초기화
+            document.getElementById('checkNickname').value = '';
+            document.getElementById('checkPin').value = '';
+            document.getElementById('myRankDisplay').innerHTML = '';
+        }
+
+        // 입력 관련 함수들
+        function clearGameOverInputs() {
+            document.getElementById('playerName').value = '';
+            document.getElementById('playerPin').value = '';
+            document.getElementById('submitMessage').innerHTML = '';
+        }
+
+        // 이벤트 리스너
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'ArrowLeft':
+                case 'KeyA':
+                    e.preventDefault();
+                    keys.left = true;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    e.preventDefault();
+                    keys.right = true;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch(e.code) {
+                case 'ArrowLeft':
+                case 'KeyA':
+                    keys.left = false;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    keys.right = false;
+                    break;
+            }
+        });
+
+        // 터치 이벤트 (모바일)
+        let touchStartX = 0;
+        let touchCurrentX = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameState !== 'playing') return;
+            
+            touchStartX = e.touches[0].clientX;
+            touchCurrentX = touchStartX;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (gameState !== 'playing') return;
+            
+            touchCurrentX = e.touches[0].clientX;
+            const deltaX = touchCurrentX - touchStartX;
+            
+            // 터치 이동에 따른 캐릭터 이동
+            const newX = character.x + deltaX * 0.5;
+            character.x = Math.max(0, Math.min(canvas.width - character.width, newX));
+            
+            touchStartX = touchCurrentX;
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        // Enter 키 이벤트들
+        document.getElementById('checkNickname').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('checkPin').focus();
+            }
+        });
+
+        document.getElementById('checkPin').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkMyRanking();
+            }
+        });
+
+        document.getElementById('playerName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('playerPin').focus();
+            }
+        });
+
+        document.getElementById('playerPin').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitScore();
+            }
+        });
+
+        // 입력 제한 함수들
+        function setupPinValidation(elementId) {
+            const pinInput = document.getElementById(elementId);
+            
+            pinInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                if (e.target.value.length > 6) {
+                    e.target.value = e.target.value.slice(0, 6);
+                }
+            });
+            
+            pinInput.addEventListener('keydown', (e) => {
+                if (!/[0-9]/.test(e.key) && 
+                    !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        function setupNicknameValidation(elementId) {
+            const nicknameInput = document.getElementById(elementId);
+            
+            nicknameInput.addEventListener('input', (e) => {
+                let value = e.target.value;
+                
+                if (e.inputType === 'insertCompositionText' || e.isComposing) {
+                    return;
+                }
+                
+                value = value.replace(/[^가-힣a-zA-Z0-9_]/g, '');
+                
+                if (value.length > 20) {
+                    value = value.slice(0, 20);
+                }
+                
+                e.target.value = value;
+            });
+            
+            nicknameInput.addEventListener('compositionend', (e) => {
+                let value = e.target.value;
+                value = value.replace(/[^가-힣a-zA-Z0-9_]/g, '');
+                if (value.length > 20) {
+                    value = value.slice(0, 20);
+                }
+                e.target.value = value;
+            });
+        }
+
+        // 입력 제한 초기화
+        setupPinValidation('checkPin');
+        setupPinValidation('playerPin');
+        setupNicknameValidation('checkNickname');
+        setupNicknameValidation('playerName');
+
+        // 화면 크기 변경 감지
+        window.addEventListener('resize', () => {
+            setupCanvas();
+            currentConfig = isMobile ? DEVICE_CONFIGS.mobile : DEVICE_CONFIGS.desktop;
+            MOVE_SPEED = currentConfig.moveSpeed;
+        });
+
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                setVH();
+                setupCanvas();
+            }, 100);
+        });
+
+// 폭탄 생성 함수
+        function createBomb() {
+            if (bombs.length >= 8) return; // 화면에 너무 많은 폭탄 방지
+            
+            const bombSize = currentConfig.itemSize;
+            const spawnWidth = canvas.width * currentConfig.spawnWidth;
+            const spawnMargin = (canvas.width - spawnWidth) / 2;
+            
+            const bombX = spawnMargin + Math.random() * spawnWidth;
+            const speedVariation = 1 + (Math.random() - 0.5) * currentConfig.itemSpeedVariation;
+            
+            bombs.push({
+                x: bombX,
+                y: -bombSize,
+                width: bombSize,
+                height: bombSize,
+                speed: gameSpeed * speedVariation,
+                passed: false
+            });
+            
+            console.log(`폭탄 생성: X=${Math.round(bombX)}, 속도=${(gameSpeed * speedVariation).toFixed(1)}`);
+        }
+
+        // 보너스 아이템 생성 함수
+        function createBonusItem() {
+            if (bonusItems.length >= 4) return; // 화면에 너무 많은 아이템 방지
+            
+            const itemType = selectRandomBonusItem();
+            const itemSize = currentConfig.itemSize;
+            const spawnWidth = canvas.width * currentConfig.spawnWidth;
+            const spawnMargin = (canvas.width - spawnWidth) / 2;
+            
+            const itemX = spawnMargin + Math.random() * spawnWidth;
+            const speedVariation = 1 + (Math.random() - 0.5) * currentConfig.itemSpeedVariation;
+            
+            bonusItems.push({
+                x: itemX,
+                y: -itemSize,
+                width: itemSize,
+                height: itemSize,
+                speed: gameSpeed * speedVariation,
+                type: itemType,
+                collected: false
+            });
+            
+            console.log(`보너스 아이템 생성: ${itemType} at X=${Math.round(itemX)}`);
+        }
+
+        function updateBombs() {
+            bombs.forEach(bomb => {
+                bomb.y += bomb.speed;
+                
+                // 폭탄이 화면을 벗어났을 때 점수 증가 (성공적으로 피함)
+                if (!bomb.passed && bomb.y > canvas.height) {
+                    bomb.passed = true;
+                    score += 1; // 폭탄 하나당 1점
+                    updateScore();
+                    
+                    // 20점마다 난이도 증가
+                    if (score > 0 && score % 20 === 0) {
+                        difficultyLevel++;
+                        gameSpeed += currentConfig.speedIncrease;
+                        currentConfig.bombInterval = Math.max(20, currentConfig.bombInterval - currentConfig.intervalDecrease);
+                        console.log(`난이도 증가! 레벨: ${difficultyLevel}, 낙하속도: ${gameSpeed.toFixed(1)}`);
+                    }
+                }
+            });
+            
+            // 화면을 벗어난 폭탄 제거
+            bombs = bombs.filter(bomb => bomb.y < canvas.height + bomb.height);
+            
+            // 폭탄 생성 타이머
+            bombTimer++;
+            if (bombTimer >= currentConfig.bombInterval) {
+                if (Math.random() < currentConfig.bombProbability) {
+                    createBomb();
+                }
+                bombTimer = 0;
+            }
+        }
+
+        function updateBonusItems() {
+            bonusItems.forEach(item => {
+                item.y += item.speed;
+            });
+            
+            // 화면을 벗어난 아이템 제거
+            bonusItems = bonusItems.filter(item => item.y < canvas.height + item.height && !item.collected);
+            
+            // 보너스 아이템 생성 타이머
+            bonusTimer++;
+            if (bonusTimer >= currentConfig.bonusInterval) {
+                if (Math.random() < currentConfig.bonusItemProbability) {
+                    createBonusItem();
+                }
+                bonusTimer = 0;
+            }
+        }
+
+        function drawBombs() {
+            bombs.forEach(bomb => {
+                if (gameImages.loaded.bomb && gameImages.bomb) {
+                    ctx.drawImage(
+                        gameImages.bomb,
+                        bomb.x, bomb.y,
+                        bomb.width, bomb.height
+                    );
+                } else {
+                    // 기본 폭탄 그리기
+                    ctx.save();
+                    ctx.fillStyle = '#FF4444';
+                    ctx.strokeStyle = '#AA0000';
+                    ctx.beginPath();
+                    ctx.roundRect(bomb.x, bomb.y, bomb.width, bomb.height, 8);
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('💣', bomb.x + bomb.width/2, bomb.y + bomb.height/2 + 6);
+                    ctx.restore();
+                }
+            });
+        }
+
+        function drawBonusItems() {
+            bonusItems.forEach(item => {
+                if (item.collected) return;
+                
+                // 아이템 이미지가 로드된 경우
+                if (gameImages.loaded[item.type] && gameImages[item.type]) {
+                    ctx.drawImage(
+                        gameImages[item.type],
+                        item.x, item.y,
+                        item.width, item.height
+                    );
+                } else {
+                    // 기본 아이템 그리기
+                    ctx.save();
+                    
+                    if (item.type === 'item1') {
+                        ctx.fillStyle = '#FF8800';
+                        ctx.strokeStyle = '#CC6600';
+                    } else if (item.type === 'item2') {
+                        ctx.fillStyle = '#4488FF';
+                        ctx.strokeStyle = '#2266CC';
+                    } else if (item.type === 'shield') {
+                        ctx.fillStyle = 'rgba(255, 140, 0, 0.8)';
+                        ctx.strokeStyle = 'rgba(255, 100, 0, 1)';
+                        ctx.lineWidth = 4;
+                        
+                        ctx.beginPath();
+                        ctx.arc(item.x + item.width/2, item.y + item.height/2, item.width/2 - 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                        
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 18px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🛡️', item.x + item.width/2, item.y + item.height/2 + 6);
+                        ctx.restore();
+                        return;
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.roundRect(item.x, item.y, item.width, item.height, 8);
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    const symbol = item.type === 'item1' ? '+10' : '?';
+                    ctx.fillText(symbol, item.x + item.width/2, item.y + item.height/2 + 6);
+                    ctx.restore();
+                }
+            });
+        }
+
+        function checkBombCollisions() {
+            if (isInvulnerable) return; // 무적 상태에서는 충돌 무시
+            
+            const charLeft = character.x + 3;
+            const charRight = character.x + character.width - 3;
+            const charTop = character.y + 3;
+            const charBottom = character.y + character.height - 3;
+            
+            bombs.forEach(bomb => {
+                if (bomb.passed) return;
+                
+                if (charRight > bomb.x + 5 && charLeft < bomb.x + bomb.width - 5 &&
+                    charBottom > bomb.y + 5 && charTop < bomb.y + bomb.height - 5) {
+                    gameOver(); // 폭탄에 맞으면 즉시 게임오버
+                }
+            });
+        }
+
+        function checkBonusItemCollisions() {
+            const charLeft = character.x + 8;
+            const charRight = character.x + character.width - 8;
+            const charTop = character.y + 8;
+            const charBottom = character.y + character.height - 8;
+            
+            bonusItems.forEach(item => {
+                if (item.collected) return;
+                
+                if (charRight > item.x + 5 && charLeft < item.x + item.width - 5 &&
+                    charBottom > item.y + 5 && charTop < item.y + item.height - 5) {
+                    
+                    item.collected = true;
+                    handleBonusItemCollection(item.type, item.x + item.width/2, item.y + item.height/2);
+                    console.log(`보너스 아이템 수집: ${item.type}`);
+                }
+            });
+            
+            // 수집된 아이템 제거
+            bonusItems = bonusItems.filter(item => !item.collected);
+        }
+
+        function handleBonusItemCollection(itemType, itemX, itemY) {
+            let scoreChange = 0;
+            
+            // 파티클 효과 생성
+            createItemParticles(itemX, itemY, itemType);
+            
+            switch (itemType) {
+                case 'item1':
+                    scoreChange = 10;
+                    score += scoreChange;
+                    showFloatingText(itemX, itemY, '+10', 'positive');
+                    console.log('⭐ 보너스 아이템: +10점, 현재 점수:', score);
+                    break;
+                    
+                case 'item2':
+                    scoreChange = Math.floor(Math.random() * 41) - 20; // -20 ~ +20
+                    if (scoreChange >= 0) {
+                        score += scoreChange;
+                        showFloatingText(itemX, itemY, `+${scoreChange}`, 'positive');
+                    } else {
+                        score = Math.max(0, score + scoreChange);
+                        showFloatingText(itemX, itemY, `${scoreChange}`, 'negative');
+                    }
+                    console.log(`🎲 미스터리 아이템: ${scoreChange >= 0 ? '+' : ''}${scoreChange}점, 현재 점수:`, score);
+                    break;
+                    
+                case 'shield':
+                    activateInvulnerability();
+                    showFloatingText(itemX, itemY, '무적!', 'shield');
+                    console.log('🛡️ 실드 아이템: 무적 실드 획득!');
+                    break;
+            }
+            
+            updateScore();
+        }
+
+        // 게임 루프
+        function gameLoop(currentTime) {
+            deltaTime = currentTime - lastTime;
+            
+            if (deltaTime >= frameDelay) {
+                // 배경과 환경 그리기
+                drawEnvironment();
+                
+                if (gameState === 'playing') {
+                    // 게임 로직 업데이트
+                    updateCharacter();
+                    updateBombs();
+                    updateBonusItems();
+                    updateInvulnerability(deltaTime);
+                    
+                    // 충돌 감지
+                    checkBombCollisions();
+                    checkBonusItemCollisions();
+                    
+                    // 게임 요소 그리기
+                    drawBombs();
+                    drawBonusItems();
+                    drawCharacter();
+                }
+                
+                lastTime = currentTime;
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 상위 10위 확인 모달 함수들
+        async function checkTop10Eligibility(newScore) {
+            if (!window.firebaseDB) return false;
+            
+            try {
+                const { collection, query, orderBy, limit, getDocs } = window.firestoreModules;
+                const q = query(
+                    collection(window.firebaseDB, 'dodger_rankings'), // dodger 전용 랭킹
+                    orderBy('score', 'desc'),
+                    limit(10)
+                );
+                
+                const snapshot = await getDocs(q);
+                const rankings = [];
+                snapshot.forEach((doc) => {
+                    rankings.push(doc.data());
+                });
+                
+                return rankings.length < 10 || newScore > (rankings[rankings.length - 1]?.score || 0);
+                
+            } catch (error) {
+                console.error('순위 확인 오류:', error);
+                return false;
+            }
+        }
+
+        function showRankCheckModal() {
+            const message = `축하합니다! ${score}점으로 상위 10위에 진입했습니다!<br>랭킹에 등록하시겠습니까?`;
+            document.getElementById('rankCheckMessage').innerHTML = message;
+            document.getElementById('rankCheckModal').classList.remove('hidden');
+        }
+
+        function proceedToRankingRegistration() {
+            document.getElementById('rankCheckModal').classList.add('hidden');
+            document.getElementById('nameInputSection').classList.remove('hidden');
+            document.getElementById('gameEndButtons').classList.add('hidden');
+            clearGameOverInputs();
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+
+        function skipRankingRegistration() {
+            document.getElementById('rankCheckModal').classList.add('hidden');
+            document.getElementById('nameInputSection').classList.add('hidden');
+            document.getElementById('gameEndButtons').classList.remove('hidden');
+            clearGameOverInputs();
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+
+        // Firebase 랭킹 함수들 (dodger 전용)
+        async function submitScore() {
+            const nickname = document.getElementById('playerName').value.trim();
+            const pin = document.getElementById('playerPin').value.trim();
+            const messageEl = document.getElementById('submitMessage');
+            
+            if (!nickname) {
+                messageEl.innerHTML = '<div class="error-message">닉네임을 입력해주세요!</div>';
+                return;
+            }
+            
+            if (!pin || pin.length !== 6) {
+                messageEl.innerHTML = '<div class="error-message">개인확인번호는 6자리 숫자여야 합니다!</div>';
+                return;
+            }
+            
+            if (!window.firebaseDB) {
+                messageEl.innerHTML = '<div class="error-message">Firebase 연결이 필요합니다!</div>';
+                return;
+            }
+            
+            try {
+                messageEl.innerHTML = '<div class="loading">랭킹 등록 중...</div>';
+                
+                const { collection, addDoc } = window.firestoreModules;
+                const rankingData = {
+                    nickname: nickname,
+                    pin: simpleHash(pin),
+                    rawPin: pin,
+                    score: score,
+                    timestamp: Date.now(),
+                    date: new Date().toLocaleDateString('ko-KR'),
+                    device: isMobile ? 'mobile' : 'desktop'
+                };
+                
+                await addDoc(collection(window.firebaseDB, 'dodger_rankings'), rankingData); // dodger 전용 컬렉션
+                
+                // 신기록 확인 및 업데이트
+                if (score > allTimeRecord.score) {
+                    await updateAllTimeRecord(score, nickname, isMobile ? 'mobile' : 'desktop');
+                }
+                
+                messageEl.innerHTML = '<div class="success-message">랭킹 등록 완료!</div>';
+                document.getElementById('nameInputSection').classList.add('hidden');
+                document.getElementById('gameEndButtons').classList.remove('hidden');
+                loadTop3Rankings();
+                
+                clearGameOverInputs();
+                
+            } catch (error) {
+                console.error('랭킹 등록 오류:', error);
+                messageEl.innerHTML = '<div class="error-message">등록 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+
+        async function loadTop3Rankings() {
+            if (!window.firebaseDB) {
+                document.getElementById('top3Rankings').innerHTML = 'Firebase 연결 필요';
+                return;
+            }
+            
+            try {
+                const { collection, query, orderBy, limit, onSnapshot } = window.firestoreModules;
+                const q = query(
+                    collection(window.firebaseDB, 'dodger_rankings'), // dodger 전용 랭킹
+                    orderBy('score', 'desc'),
+                    limit(3)
+                );
+                
+                onSnapshot(q, (snapshot) => {
+                    const rankings = [];
+                    snapshot.forEach((doc) => {
+                        rankings.push(doc.data());
+                    });
+                    displayTop3Rankings(rankings);
+                });
+                
+            } catch (error) {
+                console.error('랭킹 로드 오류:', error);
+                document.getElementById('top3Rankings').innerHTML = '로딩 실패: ' + error.message;
+            }
+        }
+
+        function displayTop3Rankings(rankings) {
+            const container = document.getElementById('top3Rankings');
+            
+            if (rankings.length === 0) {
+                container.innerHTML = '<p>아직 기록이 없습니다</p>';
+                return;
+            }
+            
+            let html = '';
+            rankings.forEach((player, index) => {
+                const medal = ['🥇', '🥈', '🥉'][index];
+                const deviceIcon = player.device === 'mobile' ? '📱' : '💻';
+                html += `<div class="rank-item top3">
+                    <span>${medal} ${index + 1}위. ${player.nickname} ${deviceIcon}</span>
+                    <span>${player.score}점</span>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        async function checkMyRanking() {
+            const nickname = document.getElementById('checkNickname').value.trim();
+            const pin = document.getElementById('checkPin').value.trim();
+            const displayEl = document.getElementById('myRankDisplay');
+            
+            // 관리자 로그인 확인
+            if (nickname === 'mildersboss' && pin === '021502') {
+                await adminLogin();
+                document.getElementById('checkNickname').value = '';
+                document.getElementById('checkPin').value = '';
+                return;
+            }
+            
+            if (!nickname || !pin) {
+                displayEl.innerHTML = '<div class="error-message">닉네임과 개인확인번호를 입력하세요</div>';
+                return;
+            }
+            
+            if (!window.firebaseDB) {
+                displayEl.innerHTML = '<div class="error-message">Firebase 연결이 필요합니다</div>';
+                return;
+            }
+            
+            try {
+                displayEl.innerHTML = '<div class="loading">검색 중...</div>';
+                
+                const { collection, query, where, getDocs, orderBy } = window.firestoreModules;
+                
+                const q = query(
+                    collection(window.firebaseDB, 'dodger_rankings'), // dodger 전용 랭킹
+                    where('nickname', '==', nickname),
+                    where('rawPin', '==', pin)
+                );
+                
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    displayEl.innerHTML = '<div class="error-message">일치하는 기록이 없습니다</div>';
+                    return;
+                }
+                
+                const allRankingsQuery = query(
+                    collection(window.firebaseDB, 'dodger_rankings'),
+                    orderBy('score', 'desc')
+                );
+                
+                const allSnapshot = await getDocs(allRankingsQuery);
+                const allRankings = [];
+                allSnapshot.forEach((doc) => {
+                    allRankings.push(doc.data());
+                });
+                
+                const myRecords = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const rank = allRankings.findIndex(r => r.timestamp === data.timestamp) + 1;
+                    myRecords.push({ ...data, rank });
+                });
+                
+                myRecords.sort((a, b) => a.rank - b.rank);
+                const bestRecord = myRecords[0];
+                const deviceIcon = bestRecord.device === 'mobile' ? '📱' : '💻';
+                
+                displayEl.innerHTML = `
+                    <div class="success-message">
+                        최고 순위: ${bestRecord.rank}위 ${deviceIcon}<br>
+                        점수: ${bestRecord.score}점<br>
+                        날짜: ${bestRecord.date}
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('순위 확인 오류:', error);
+                displayEl.innerHTML = '<div class="error-message">검색 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+
+        // 초기화 및 게임 시작
+        console.log(`Martin Bomb Dodger 준비 완료! (${isMobile ? '모바일' : '데스크탑'})`);
+
+        setTimeout(() => {
+            if (window.firebaseDB) {
+                loadTop3Rankings();
+                loadAllTimeRecord();
+                updateConnectionStatus('online', isMobile ? '모바일 연결' : '데스크탑 연결');
+                loadNotices();
+                updateVisitorCount();
+                loadVisitorCount();
+            } else {
+                updateConnectionStatus('offline', 'Firebase 오류');
+                document.getElementById('top3Rankings').innerHTML = `
+                    <p style="color: #f44336;">Firebase 연결 오류</p>
+                    <p style="font-size: 12px;">새로고침 후 다시 시도해주세요</p>
+                `;
+                document.getElementById('allTimeRecord').textContent = '🏆 역대 최고 기록: 연결 오류';
+            }
+        }, 1000);
+
+        gameLoop();
+    </script>
+</body>
+</html>
