@@ -2396,11 +2396,11 @@ function createBomb1() {
                 // 폭탄이 화면을 벗어났을 때 점수 증가 (성공적으로 피함)
                 if (!bomb.passed && bomb.y > canvas.height) {
                     bomb.passed = true;
-                    score += 1; // 폭탄 하나당 1점
+                    score += 5; // 폭탄 하나당 1점
                     updateScore();
                     
                     // 20점마다 난이도 증가
-                    if (score > 0 && score % 20 === 0) {
+                    if (score > 0 && score % 100 === 0) {
                         difficultyLevel++;
                         gameSpeed += currentConfig.speedIncrease;
                         // 난이도 증가 시 두 타이머 모두 감소
@@ -2902,4 +2902,5 @@ function createBomb1() {
         gameLoop();
     </script>
 </body>
+
 </html>
