@@ -144,6 +144,19 @@
         <span id="visitorCount">방문자: 로딩중...</span>
     </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 <style>
         * {
             margin: 0;
@@ -974,6 +987,23 @@
         }
     </style>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -1009,10 +1039,12 @@
         const DEVICE_CONFIGS = {
             mobile: {
                 gameSpeed: 2.0,           // 기본 떨어지는 속도
-                moveSpeed: 5.0,           // 좌우 이동 속도
-                bombInterval: 60,         // 폭탄 생성 간격 (주요)
+                moveSpeed: 4.0,           // 좌우 이동 속도 (5.0 → 4.0)
+                bombInterval: 70,         // bomb.png 생성 간격 (60 → 70)
+                bomb1Interval: 100,       // bomb1.png 생성 간격 (새로 추가)
+                bombProbability: 0.8,     // bomb.png 생성 확률 (80%)
+                bomb1Probability: 0.7,    // bomb1.png 생성 확률 (새로 추가)
                 bonusInterval: 200,       // 보너스 아이템 생성 간격 (부가)
-                bombProbability: 0.8,     // 폭탄 생성 확률 (80%)
                 bonusItemProbability: 0.3,// 보너스 아이템 생성 확률 (30%)
                 characterSize: 50,        // 캐릭터 크기
                 itemSize: 40,             // 아이템 크기
@@ -1023,10 +1055,12 @@
             },
             desktop: {
                 gameSpeed: 2.5,
-                moveSpeed: 6.0,
-                bombInterval: 50,
+                moveSpeed: 5.0,           // 좌우 이동 속도 (6.0 → 5.0)
+                bombInterval: 80,         // bomb.png 생성 간격 (50 → 80)
+                bomb1Interval: 110,       // bomb1.png 생성 간격 (새로 추가)
+                bombProbability: 0.8,     // bomb.png 생성 확률 (80%)
+                bomb1Probability: 0.7,    // bomb1.png 생성 확률 (새로 추가)
                 bonusInterval: 180,
-                bombProbability: 0.8,
                 bonusItemProbability: 0.35,
                 characterSize: 45,
                 itemSize: 35,
@@ -1074,7 +1108,8 @@
         // 분리된 아이템 시스템 변수 (게임 시작에 필수)
         let bombs = [];           // 폭탄만 저장
         let bonusItems = [];      // 보너스 아이템만 저장
-        let bombTimer = 0;        // 폭탄 생성 타이머
+        let bombTimer = 0;        // bomb.png 생성 타이머
+        let bomb1Timer = 0;       // bomb1.png 생성 타이머 (별도 추가)
         let bonusTimer = 0;       // 보너스 아이템 생성 타이머
         
         // 무적 실드 시스템 변수
@@ -1168,7 +1203,7 @@
                     console.log(`역대 기록 로드 시도 ${currentRetry + 1}/${maxRetries}`);
                     
                     const { doc, getDoc, setDoc } = window.firestoreModules;
-                    const recordRef = doc(window.firebaseDB, 'all_time_record_dodger', 'global'); // dodger용 별도 기록
+                    const recordRef = doc(window.firebaseDB, 'martin_bomb_dodger_all_time_record', 'global'); // 게임명 추가
                     
                     const recordDoc = await getDoc(recordRef);
                     
@@ -1248,7 +1283,7 @@
                         timestamp: Date.now()
                     };
                     
-                    await setDoc(doc(window.firebaseDB, 'all_time_record_dodger', 'global'), newRecord);
+                    await setDoc(doc(window.firebaseDB, 'martin_bomb_dodger_all_time_record', 'global'), newRecord); // 게임명 추가
                     allTimeRecord = newRecord;
                     
                     const deviceIcon = device === 'mobile' ? '📱' : '💻';
@@ -1393,7 +1428,7 @@
                 const { doc, setDoc, getDoc, updateDoc, increment } = window.firestoreModules;
                 
                 // 총 방문자 수 업데이트
-                const totalVisitorRef = doc(window.firebaseDB, 'visitor_stats', 'total');
+                const totalVisitorRef = doc(window.firebaseDB, 'martin_bomb_dodger_visitor_stats', 'total'); // 게임명 추가
                 try {
                     await updateDoc(totalVisitorRef, {
                         count: increment(1),
@@ -1407,7 +1442,7 @@
                 }
                 
                 // 오늘 방문자 수 업데이트
-                const todayVisitorRef = doc(window.firebaseDB, 'visitor_stats', `daily_${today.replace(/\s/g, '_')}`);
+                const todayVisitorRef = doc(window.firebaseDB, 'martin_bomb_dodger_visitor_stats', `daily_${today.replace(/\s/g, '_')}`); // 게임명 추가
                 try {
                     await updateDoc(todayVisitorRef, {
                         count: increment(1),
@@ -1440,11 +1475,11 @@
                 const today = new Date().toDateString();
                 const { doc, getDoc } = window.firestoreModules;
                 
-                const totalVisitorRef = doc(window.firebaseDB, 'visitor_stats', 'total');
+                const totalVisitorRef = doc(window.firebaseDB, 'martin_bomb_dodger_visitor_stats', 'total'); // 게임명 추가
                 const totalDoc = await getDoc(totalVisitorRef);
                 const totalCount = totalDoc.exists() ? (totalDoc.data().count || 0) : 0;
                 
-                const todayVisitorRef = doc(window.firebaseDB, 'visitor_stats', `daily_${today.replace(/\s/g, '_')}`);
+                const todayVisitorRef = doc(window.firebaseDB, 'martin_bomb_dodger_visitor_stats', `daily_${today.replace(/\s/g, '_')}`); // 게임명 추가
                 const todayDoc = await getDoc(todayVisitorRef);
                 const todayCount = todayDoc.exists() ? (todayDoc.data().count || 0) : 0;
                 
@@ -1456,6 +1491,26 @@
             }
         }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // 개선된 공지사항 관리 (에러 해결)
         async function loadNotices() {
             if (!window.firebaseDB) return;
@@ -1465,7 +1520,7 @@
                 
                 // 단순 쿼리로 변경하여 인덱스 오류 방지
                 const q = query(
-                    collection(window.firebaseDB, 'notices'),
+                    collection(window.firebaseDB, 'martin_bomb_dodger_notices'), // 게임명 추가
                     where('isActive', '==', true)
                 );
                 
@@ -1502,7 +1557,7 @@
         async function loadNoticesAlternative() {
             try {
                 const { collection, getDocs } = window.firestoreModules;
-                const snapshot = await getDocs(collection(window.firebaseDB, 'notices'));
+                const snapshot = await getDocs(collection(window.firebaseDB, 'martin_bomb_dodger_notices')); // 게임명 추가
                 
                 const notices = [];
                 const now = Date.now();
@@ -1619,7 +1674,7 @@
                     noticeData.expireDate = expireDate;
                 }
                 
-                await addDoc(collection(window.firebaseDB, 'notices'), noticeData);
+                await addDoc(collection(window.firebaseDB, 'martin_bomb_dodger_notices'), noticeData); // 게임명 추가
                 
                 messageEl.innerHTML = '<div class="success-message">공지사항이 저장되었습니다</div>';
                 clearNoticeForm();
@@ -1643,7 +1698,7 @@
             
             try {
                 const { collection, getDocs } = window.firestoreModules;
-                const snapshot = await getDocs(collection(window.firebaseDB, 'notices'));
+                const snapshot = await getDocs(collection(window.firebaseDB, 'martin_bomb_dodger_notices')); // 게임명 추가
                 
                 let html = '';
                 const now = Date.now();
@@ -1695,7 +1750,7 @@
         async function deactivateNotice(noticeId) {
             try {
                 const { doc, updateDoc } = window.firestoreModules;
-                await updateDoc(doc(window.firebaseDB, 'notices', noticeId), { isActive: false });
+                await updateDoc(doc(window.firebaseDB, 'martin_bomb_dodger_notices', noticeId), { isActive: false }); // 게임명 추가
                 loadAdminNotices();
             } catch (error) {
                 console.error('공지사항 비활성화 오류:', error);
@@ -1705,7 +1760,7 @@
         async function activateNotice(noticeId) {
             try {
                 const { doc, updateDoc } = window.firestoreModules;
-                await updateDoc(doc(window.firebaseDB, 'notices', noticeId), { isActive: true });
+                await updateDoc(doc(window.firebaseDB, 'martin_bomb_dodger_notices', noticeId), { isActive: true }); // 게임명 추가
                 loadAdminNotices();
             } catch (error) {
                 console.error('공지사항 활성화 오류:', error);
@@ -1717,7 +1772,7 @@
             
             try {
                 const { doc, deleteDoc } = window.firestoreModules;
-                await deleteDoc(doc(window.firebaseDB, 'notices', noticeId));
+                await deleteDoc(doc(window.firebaseDB, 'martin_bomb_dodger_notices', noticeId)); // 게임명 추가
                 loadAdminNotices();
             } catch (error) {
                 console.error('공지사항 삭제 오류:', error);
@@ -1741,7 +1796,7 @@
                 const { collection, query, orderBy, limit, getDocs, setDoc, deleteDoc, doc } = window.firestoreModules;
                 
                 const top10Query = query(
-                    collection(window.firebaseDB, 'rankings'), 
+                    collection(window.firebaseDB, 'martin_bomb_dodger_rankings'), // 게임명 추가
                     orderBy('score', 'desc'), 
                     limit(10)
                 );
@@ -1771,13 +1826,13 @@
                     totalBackedUp: backupRankings.length
                 };
                 
-                await setDoc(doc(window.firebaseDB, 'backup_rankings', `reset_${resetNumber}`), backupDoc);
+                await setDoc(doc(window.firebaseDB, 'martin_bomb_dodger_backup_rankings', `reset_${resetNumber}`), backupDoc); // 게임명 추가
                 
-                const allRankingsQuery = query(collection(window.firebaseDB, 'rankings'));
+                const allRankingsQuery = query(collection(window.firebaseDB, 'martin_bomb_dodger_rankings')); // 게임명 추가
                 const allSnapshot = await getDocs(allRankingsQuery);
                 const deletePromises = [];
                 allSnapshot.forEach((docSnapshot) => {
-                    deletePromises.push(deleteDoc(doc(window.firebaseDB, 'rankings', docSnapshot.id)));
+                    deletePromises.push(deleteDoc(doc(window.firebaseDB, 'martin_bomb_dodger_rankings', docSnapshot.id))); // 게임명 추가
                 });
                 await Promise.all(deletePromises);
                 
@@ -1798,7 +1853,7 @@
             
             try {
                 const { collection, query, orderBy, getDocs } = window.firestoreModules;
-                const backupQuery = query(collection(window.firebaseDB, 'backup_rankings'), orderBy('resetNumber', 'desc'));
+                const backupQuery = query(collection(window.firebaseDB, 'martin_bomb_dodger_backup_rankings'), orderBy('resetNumber', 'desc')); // 게임명 추가
                 const snapshot = await getDocs(backupQuery);
                 
                 let html = '<h3>백업된 랭킹 기록</h3>';
@@ -1842,6 +1897,24 @@
             document.getElementById('adminMessage').innerHTML = '';
             document.getElementById('backupDisplay').innerHTML = '';
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // 이미지 관리 시스템
         const gameImages = {
@@ -2040,10 +2113,11 @@
             // 무적 실드 초기화
             deactivateInvulnerability();
             
-            // 아이템 초기화
+            // 아이템 초기화 (별도 타이머 포함)
             bombs = [];
             bonusItems = [];
             bombTimer = 0;
+            bomb1Timer = 0;  // bomb1 타이머 초기화 추가
             bonusTimer = 0;
             
             // 설정 업데이트
@@ -2223,44 +2297,72 @@
             }, 100);
         });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // 폭탄 생성 함수 (bomb.png와 bomb1.png 두 배로 생성)
-        function createBomb() {
-            if (bombs.length >= 16) return; // 폭탄이 두 배가 되므로 최대 개수도 증가
-            
-            const bombSize = currentConfig.itemSize;
-            const spawnWidth = canvas.width * currentConfig.spawnWidth;
-            const spawnMargin = (canvas.width - spawnWidth) / 2;
-            
-            // 첫 번째 폭탄 (기존 bomb.png)
-            const bomb1X = spawnMargin + Math.random() * spawnWidth;
-            const speed1Variation = 1 + (Math.random() - 0.5) * currentConfig.itemSpeedVariation;
-            
-            bombs.push({
-                x: bomb1X,
-                y: -bombSize,
-                width: bombSize,
-                height: bombSize,
-                speed: gameSpeed * speed1Variation,
-                passed: false,
-                type: 'bomb'  // 폭탄 타입 추가
-            });
-            
-            // 두 번째 폭탄 (새로운 bomb1.png)
-            const bomb2X = spawnMargin + Math.random() * spawnWidth;
-            const speed2Variation = 1 + (Math.random() - 0.5) * currentConfig.itemSpeedVariation;
-            
-            bombs.push({
-                x: bomb2X,
-                y: -bombSize - Math.random() * 100, // 약간 다른 Y 위치에서 시작
-                width: bombSize,
-                height: bombSize,
-                speed: gameSpeed * speed2Variation,
-                passed: false,
-                type: 'bomb1'  // 새로운 폭탄 타입
-            });
-            
-            console.log(`폭탄 생성: bomb(${Math.round(bomb1X)}), bomb1(${Math.round(bomb2X)})`);
-        }
+        // 현재 createBomb() 함수를 이렇게 수정:
+function createBomb() {
+    if (bombs.length >= 16) return;
+    
+    const bombSize = currentConfig.itemSize;
+    const spawnWidth = canvas.width * currentConfig.spawnWidth;
+    const spawnMargin = (canvas.width - spawnWidth) / 2;
+    
+    const bombX = spawnMargin + Math.random() * spawnWidth;
+    const speedVariation = 1 + (Math.random() - 0.5) * currentConfig.itemSpeedVariation;
+    
+    bombs.push({
+        x: bombX,
+        y: -bombSize,
+        width: bombSize,
+        height: bombSize,
+        speed: gameSpeed * speedVariation,
+        passed: false,
+        type: 'bomb'  // bomb.png만
+    });
+    
+    console.log(`bomb.png 생성: X=${Math.round(bombX)}`);
+}
+
+// 이 함수를 createBomb() 함수 바로 아래에 추가:
+function createBomb1() {
+    if (bombs.length >= 16) return;
+    
+    const bombSize = currentConfig.itemSize;
+    const spawnWidth = canvas.width * currentConfig.spawnWidth;
+    const spawnMargin = (canvas.width - spawnWidth) / 2;
+    
+    const bomb1X = spawnMargin + Math.random() * spawnWidth;
+    const speedVariation = 1 + (Math.random() - 0.5) * currentConfig.itemSpeedVariation;
+    
+    bombs.push({
+        x: bomb1X,
+        y: -bombSize,
+        width: bombSize,
+        height: bombSize,
+        speed: gameSpeed * speedVariation,
+        passed: false,
+        type: 'bomb1'  // bomb1.png만
+    });
+    
+    console.log(`bomb1.png 생성: X=${Math.round(bomb1X)}`);
+}
 
         // 보너스 아이템 생성 함수
         function createBonusItem() {
@@ -2301,7 +2403,9 @@
                     if (score > 0 && score % 20 === 0) {
                         difficultyLevel++;
                         gameSpeed += currentConfig.speedIncrease;
+                        // 난이도 증가 시 두 타이머 모두 감소
                         currentConfig.bombInterval = Math.max(20, currentConfig.bombInterval - currentConfig.intervalDecrease);
+                        currentConfig.bomb1Interval = Math.max(25, currentConfig.bomb1Interval - currentConfig.intervalDecrease);
                         console.log(`난이도 증가! 레벨: ${difficultyLevel}, 낙하속도: ${gameSpeed.toFixed(1)}`);
                     }
                 }
@@ -2310,13 +2414,22 @@
             // 화면을 벗어난 폭탄 제거
             bombs = bombs.filter(bomb => bomb.y < canvas.height + bomb.height);
             
-            // 폭탄 생성 타이머
+            // bomb.png 생성 타이머 (별도)
             bombTimer++;
             if (bombTimer >= currentConfig.bombInterval) {
                 if (Math.random() < currentConfig.bombProbability) {
                     createBomb();
                 }
                 bombTimer = 0;
+            }
+            
+            // bomb1.png 생성 타이머 (별도)
+            bomb1Timer++;
+            if (bomb1Timer >= currentConfig.bomb1Interval) {
+                if (Math.random() < currentConfig.bomb1Probability) {
+                    createBomb1();
+                }
+                bomb1Timer = 0;
             }
         }
 
@@ -2543,7 +2656,7 @@
             try {
                 const { collection, query, orderBy, limit, getDocs } = window.firestoreModules;
                 const q = query(
-                    collection(window.firebaseDB, 'dodger_rankings'), // dodger 전용 랭킹
+                    collection(window.firebaseDB, 'martin_bomb_dodger_rankings'), // 게임명 추가
                     orderBy('score', 'desc'),
                     limit(10)
                 );
@@ -2584,7 +2697,7 @@
             document.getElementById('gameOverScreen').classList.remove('hidden');
         }
 
-        // Firebase 랭킹 함수들 (dodger 전용)
+        // Firebase 랭킹 함수들 (martin_bomb_dodger 전용)
         async function submitScore() {
             const nickname = document.getElementById('playerName').value.trim();
             const pin = document.getElementById('playerPin').value.trim();
@@ -2619,7 +2732,7 @@
                     device: isMobile ? 'mobile' : 'desktop'
                 };
                 
-                await addDoc(collection(window.firebaseDB, 'dodger_rankings'), rankingData); // dodger 전용 컬렉션
+                await addDoc(collection(window.firebaseDB, 'martin_bomb_dodger_rankings'), rankingData); // 게임명 추가
                 
                 // 신기록 확인 및 업데이트
                 if (score > allTimeRecord.score) {
@@ -2648,7 +2761,7 @@
             try {
                 const { collection, query, orderBy, limit, onSnapshot } = window.firestoreModules;
                 const q = query(
-                    collection(window.firebaseDB, 'dodger_rankings'), // dodger 전용 랭킹
+                    collection(window.firebaseDB, 'martin_bomb_dodger_rankings'), // 게임명 추가
                     orderBy('score', 'desc'),
                     limit(3)
                 );
@@ -2717,7 +2830,7 @@
                 const { collection, query, where, getDocs, orderBy } = window.firestoreModules;
                 
                 const q = query(
-                    collection(window.firebaseDB, 'dodger_rankings'), // dodger 전용 랭킹
+                    collection(window.firebaseDB, 'martin_bomb_dodger_rankings'), // 게임명 추가
                     where('nickname', '==', nickname),
                     where('rawPin', '==', pin)
                 );
@@ -2730,7 +2843,7 @@
                 }
                 
                 const allRankingsQuery = query(
-                    collection(window.firebaseDB, 'dodger_rankings'),
+                    collection(window.firebaseDB, 'martin_bomb_dodger_rankings'), // 게임명 추가
                     orderBy('score', 'desc')
                 );
                 
